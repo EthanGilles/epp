@@ -19,7 +19,9 @@ typedef struct TOKEN_STRUCT
     TOKEN_STRING,
     TOKEN_SEMI,
     TOKEN_LPAREN,
-    TOKEN_RPAREN
+    TOKEN_RPAREN,
+    TOKEN_COMMA,
+    TOKEN_EOF, /* end of file */
   } type;
 
   /* The string that this token is holding */

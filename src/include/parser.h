@@ -8,6 +8,7 @@ typedef struct PARSER_STRUCT
 {
   lexer_T* lexer;
   token_T* current_token;
+  token_T* prev_token;
 } parser_T;
 
 parser_T* init_parser(lexer_T* lexer);
@@ -46,7 +47,6 @@ AST_T* parser_parse_string(parser_T* parser);
 
 /* Will return AST node with type ID */
 AST_T* parser_parse_id(parser_T* parser);
-
 
 
 #endif 

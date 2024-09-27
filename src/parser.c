@@ -10,6 +10,7 @@ parser_T* init_parser(lexer_T* lexer)
   parser_T* parser = calloc(1, sizeof(struct PARSER_STRUCT));
   parser->lexer = lexer;
   parser->current_token = lexer_get_next_token(lexer);
+  parser->prev_token = parser->current_token;
 
   return parser;
 }
@@ -19,10 +20,13 @@ parser_T* init_parser(lexer_T* lexer)
 void parser_eat(parser_T* parser, int token_type)
 {
   if(parser->current_token->type == token_type)
+  {
+    parser->prev_token = parser->current_token;
     parser->current_token = lexer_get_next_token(parser->lexer);
+  }
   else
   {
-    printf("Unexpected token '%s', with type %d",
+    printf("Unexpected token '%s', with type %d\n",
            parser->current_token->value,
            parser->current_token->type);
     exit(1);
@@ -67,8 +71,9 @@ AST_T* parser_parse_statements(parser_T* parser)
      * Add the item to the last spot in the list */
     AST_T* ast_statement = parser_parse_statement(parser);
     compound->compound_size +=1;
-    compound->compound_value = realloc(compound->compound_value, 
-                                       compound->compound_size * sizeof(struct AST_STRUCT*));
+    compound->compound_value = 
+      realloc(compound->compound_value, 
+              compound->compound_size * sizeof(struct AST_STRUCT*));
 
     compound->compound_value[compound->compound_size-1] = ast_statement;
 
@@ -82,6 +87,7 @@ AST_T* parser_parse_expr(parser_T* parser)
   switch(parser->current_token->type)
   {
     case TOKEN_STRING: return parser_parse_string(parser);
+    case TOKEN_ID: return parser_parse_id(parser);
   }
 }
 
@@ -97,7 +103,36 @@ AST_T* parser_parse_term(parser_T* parser)
 
 AST_T* parser_parse_function_call(parser_T* parser)
 {
+  AST_T* function_call = init_ast(AST_FUNCTION_CALL);
+  parser_eat(parser, TOKEN_LPAREN);
+  /* We are at a left parenthesis so we need to go 
+   * back one to get the function name */
+  function_call->function_call_name = parser->prev_token->value;
 
+  function_call->function_call_arguments = calloc(1, sizeof(struct AST_STRUCT*));
+
+  /* Expecting an argument to the function, so we parse it and add it to the list */
+  AST_T* ast_expr = parser_parse_expr(parser);
+  function_call->function_call_arguments[0] = ast_expr;
+
+  /* While we still have semicolons, we will expect more statements 
+   * So we will parse the rest of the statements and add them to the list */
+  while(parser->current_token->type == TOKEN_COMMA)
+  {
+    /* take out the comma */
+    parser_eat(parser, TOKEN_COMMA);
+
+    AST_T* ast_expr = parser_parse_expr(parser);
+    function_call-> function_call_arguments_size += 1;
+    function_call-> function_call_arguments = 
+      realloc(function_call->function_call_arguments, 
+              function_call->function_call_arguments_size * sizeof(struct AST_STRUCT*));
+
+    function_call->function_call_arguments[function_call->function_call_arguments_size-1] = ast_expr;
+  }
+
+  parser_eat(parser, TOKEN_RPAREN);
+  return function_call;
 }
 
 
@@ -107,7 +142,7 @@ AST_T* parser_parse_variable_definition(parser_T* parser)
   char* variable_name = parser->current_token->value; /* STORE -> name */
   parser_eat(parser, TOKEN_ID); /* DESTROY -> name */
   parser_eat(parser, TOKEN_EQUALS); /* DESTROY -> = */
-  AST_T* variable_value = parser_parse_expr(parser); /* STORE -> "Hello World!" */
+  AST_T* variable_value = parser_parse_expr(parser); /* STORE -> "Hello!" */
 
   /* AST node to return */
   AST_T* variable_def = init_ast(AST_VARIABLE_DEFINITION);
