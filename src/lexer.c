@@ -34,7 +34,7 @@ void lexer_skip_whitespace(lexer_T * lexer)
   }
 }
 
-
+/* returns the next token from the lexer */
 token_T* lexer_get_next_token(lexer_T* lexer)
 {
   while(lexer->c != '\0' && lexer->index < strlen(lexer->contents))
@@ -57,12 +57,18 @@ token_T* lexer_get_next_token(lexer_T* lexer)
       case ';':  return lexer_advance_with_token(lexer, init_token(TOKEN_SEMI, lexer_get_current_char_as_string(lexer))); break;
       case '(':  return lexer_advance_with_token(lexer, init_token(TOKEN_LPAREN, lexer_get_current_char_as_string(lexer))); break;
       case ')':  return lexer_advance_with_token(lexer, init_token(TOKEN_RPAREN, lexer_get_current_char_as_string(lexer))); break;
+      case ',':  return lexer_advance_with_token(lexer, init_token(TOKEN_COMMA, lexer_get_current_char_as_string(lexer))); break;
     }
   }
 
-  return (void*)0;
+  /* No more tokens left */
+  return init_token(TOKEN_EOF, "\0");
 }
 
+/* Get a string from inside double quotes 
+ * Expecting: "Hello World!" 
+ * So it will grab: Hello World! 
+ * WITHOUT the quotes. */
 token_T* lexer_collect_string(lexer_T* lexer)
 {
   /* skip the opening quote */
@@ -70,7 +76,6 @@ token_T* lexer_collect_string(lexer_T* lexer)
 
   /* Allocate enough for one character */
   char* value = calloc(1, sizeof(char));
-
   value[0] = '\0';
 
   while(lexer->c != '"')
@@ -89,11 +94,10 @@ token_T* lexer_collect_string(lexer_T* lexer)
   return init_token(TOKEN_STRING, value);
 }
 
+/* An ID labels a variable. Either a type or a variable name */
 token_T* lexer_collect_id(lexer_T* lexer)
 {
-  /* Allocate enough for one character */
   char* value = calloc(1, sizeof(char));
-
   value[0] = '\0';
 
   while(isalnum(lexer->c))
@@ -104,7 +108,7 @@ token_T* lexer_collect_id(lexer_T* lexer)
     lexer_advance(lexer);
   }
 
-  return init_token(TOKEN_STRING, value);
+  return init_token(TOKEN_ID, value);
 }
 
 token_T* lexer_advance_with_token(lexer_T* lexer, token_T* token)
@@ -117,7 +121,6 @@ char* lexer_get_current_char_as_string(lexer_T* lexer)
 {
   char* str = calloc(2, sizeof(char));
   str[0] = lexer->c;
-
   /* empty char slot */
   str[1] = '\0';
 
