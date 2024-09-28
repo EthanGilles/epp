@@ -1,4 +1,4 @@
-var name = "Ethan";
-var othername = "Althea";
+var name = "Successfully";
+var othername = "Installed";
 
-print(name, othername);
+print(name, othername, "E++");
