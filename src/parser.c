@@ -123,7 +123,7 @@ AST_T* parser_parse_function_call(parser_T* parser)
   function_call->function_call_arguments[0] = ast_expr;
   function_call->function_call_arguments_size += 1;
 
-  /* While we still have semicolons, we will expect more statements 
+  /* While we still have commas, we will expect more arguments 
    * So we will parse the rest of the statements and add them to the list */
   while(parser->current_token->type == TOKEN_COMMA)
   {
@@ -134,7 +134,8 @@ AST_T* parser_parse_function_call(parser_T* parser)
     function_call-> function_call_arguments_size += 1;
     function_call-> function_call_arguments = 
       realloc(function_call->function_call_arguments, 
-              function_call->function_call_arguments_size * sizeof(struct AST_STRUCT*));
+              function_call->function_call_arguments_size * 
+              sizeof(struct AST_STRUCT*));
 
     function_call->function_call_arguments[function_call->function_call_arguments_size-1] = ast_expr;
   }
@@ -143,6 +144,24 @@ AST_T* parser_parse_function_call(parser_T* parser)
   return function_call;
 }
 
+AST_T* parser_parse_function_definition(parser_T* parser)
+{
+  AST_T* ast = init_ast(AST_FUNCTION_DEFINITION);
+  parser_eat(parser, TOKEN_ID); /* DESTROY -> function */
+  char* function_name = parser->current_token->value; /* STORE -> name of function */
+  parser_eat(parser, TOKEN_ID); /* DESTROY -> name */
+
+  parser_eat(parser, TOKEN_LPAREN); /* DESTROY -> ( */
+  /* parse the arguments of the function */
+  parser_eat(parser, TOKEN_RPAREN); /* DESTROY -> ) */
+
+  parser_eat(parser, TOKEN_LBRACE); /* DESTROY -> { */
+  /* parse the body of the function */
+  ast->function_definition_body = parser_parse_statements(parser);
+  parser_eat(parser, TOKEN_RBRACE); /* DESTROY -> } */
+
+  return ast;
+}
 
 AST_T* parser_parse_variable_definition(parser_T* parser)
 {
@@ -192,6 +211,10 @@ AST_T* parser_parse_id(parser_T* parser)
   if(strcmp(parser->current_token->value, "var") == 0)
   {
     return parser_parse_variable_definition(parser);
+  }
+  else if(strcmp(parser->current_token->value, "function") == 0)
+  {
+    return parser_parse_function_definition(parser);
   }
   else 
   {

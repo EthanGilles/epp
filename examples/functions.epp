@@ -1,0 +1,6 @@
+function dosomething()
+{
+  print("Here is something");
+}
+
+do_something();

@@ -36,6 +36,9 @@ AST_T* parser_parse_term(parser_T* parser);
 /* Will return AST node with type function call */
 AST_T* parser_parse_function_call(parser_T* parser);
 
+/* Will return AST node with type function call */
+AST_T* parser_parse_function_definition(parser_T* parser);
+
 /* Will return AST node with type variable definition */
 AST_T* parser_parse_variable_definition(parser_T* parser);
 
