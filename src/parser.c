@@ -208,11 +208,11 @@ AST_T* parser_parse_string(parser_T* parser)
 
 AST_T* parser_parse_id(parser_T* parser)
 {
-  if(strcmp(parser->current_token->value, "var") == 0)
+  if(strcmp(parser->current_token->value, VAR_DEF_SYNTAX) == 0)
   {
     return parser_parse_variable_definition(parser);
   }
-  else if(strcmp(parser->current_token->value, "function") == 0)
+  else if(strcmp(parser->current_token->value, FUNCTION_DEF_SYNTAX) == 0)
   {
     return parser_parse_function_definition(parser);
   }
@@ -220,6 +220,5 @@ AST_T* parser_parse_id(parser_T* parser)
   {
     return parser_parse_variable(parser);
   }
-
 }
 

@@ -1,6 +1,7 @@
-function dosomething()
+fn dosomething()
 {
-  print("Here is something");
+  set str = "function did something";
+  print(str);
 }
 
 do_something();

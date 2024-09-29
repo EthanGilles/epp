@@ -3,6 +3,8 @@
 #include "lexer.h"
 #include "AST.h"
 
+const static char* VAR_DEF_SYNTAX = "set";
+const static char* FUNCTION_DEF_SYNTAX = "fn";
 
 typedef struct PARSER_STRUCT 
 {
