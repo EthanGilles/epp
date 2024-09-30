@@ -1,7 +1,7 @@
-fn dosomething()
-{
+fn dosomething() {
   set str = "function did something";
   print(str);
-}
+};
 
-do_something();
+dosomething();
+dosomething();

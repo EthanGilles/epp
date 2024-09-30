@@ -1,0 +1,6 @@
+fn doSomething(one, two) {
+  print(one);
+  print(two);
+};
+
+doSomething("Hello", "World");
