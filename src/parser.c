@@ -124,26 +124,29 @@ AST_T* parser_parse_function_call(parser_T* parser, scope_T* scope)
 
   function_call->function_call_arguments = calloc(1, sizeof(struct AST_STRUCT*));
 
-  /* Expecting an argument to the function, so we parse it and add it to the list */
-  AST_T* ast_expr = parser_parse_expr(parser, scope);
-  function_call->function_call_arguments[0] = ast_expr;
-  function_call->function_call_arguments_size += 1;
-
-  /* While we still have commas, we will expect more arguments 
-   * So we will parse the rest of the statements and add them to the list */
-  while(parser->current_token->type == TOKEN_COMMA)
+  if(parser->current_token->type != TOKEN_RPAREN) 
   {
-    /* take out the comma */
-    parser_eat(parser, TOKEN_COMMA);
-
+    /* Expecting an argument to the function, so we parse it and add it to the list */
     AST_T* ast_expr = parser_parse_expr(parser, scope);
-    function_call-> function_call_arguments_size += 1;
-    function_call-> function_call_arguments = 
-      realloc(function_call->function_call_arguments, 
-              function_call->function_call_arguments_size * 
-              sizeof(struct AST_STRUCT*));
+    function_call->function_call_arguments[0] = ast_expr;
+    function_call->function_call_arguments_size += 1;
 
-    function_call->function_call_arguments[function_call->function_call_arguments_size-1] = ast_expr;
+    /* While we still have commas, we will expect more arguments 
+     * So we will parse the rest of the statements and add them to the list */
+    while(parser->current_token->type == TOKEN_COMMA)
+    {
+      /* take out the comma */
+      parser_eat(parser, TOKEN_COMMA);
+
+      AST_T* ast_expr = parser_parse_expr(parser, scope);
+      function_call-> function_call_arguments_size += 1;
+      function_call-> function_call_arguments = 
+        realloc(function_call->function_call_arguments, 
+                function_call->function_call_arguments_size * 
+                sizeof(struct AST_STRUCT*));
+
+      function_call->function_call_arguments[function_call->function_call_arguments_size-1] = ast_expr;
+    }
   }
 
   parser_eat(parser, TOKEN_RPAREN);
@@ -163,24 +166,28 @@ AST_T* parser_parse_function_definition(parser_T* parser, scope_T* scope)
 
   parser_eat(parser, TOKEN_LPAREN); /* DESTROY -> ( */
 
-  /* parse the arguments of the function */
-  ast->function_definition_args = calloc(1, sizeof(struct AST_STRUCT*));
-  AST_T* arg = parser_parse_variable(parser, scope);
-  ast->function_definition_args_size += 1;
-  ast->function_definition_args[ast->function_definition_args_size-1] = arg;
-
-
-  while(parser->current_token->type == TOKEN_COMMA) {
-    parser_eat(parser, TOKEN_COMMA); /* DESTROY -> , */
-    ast->function_definition_args_size += 1;
-
-    /* Add another slot to the list */
-    ast->function_definition_args = realloc(
-      ast->function_definition_args, 
-      ast->function_definition_args_size * sizeof(struct AST_STRUCT*));
-
+  /* Make sure we actually have arguments to parse */
+  if(parser->current_token->type != TOKEN_RPAREN)
+  {
+    /* parse the arguments of the function */
+    ast->function_definition_args = calloc(1, sizeof(struct AST_STRUCT*));
     AST_T* arg = parser_parse_variable(parser, scope);
+    ast->function_definition_args_size += 1;
     ast->function_definition_args[ast->function_definition_args_size-1] = arg;
+
+
+    while(parser->current_token->type == TOKEN_COMMA) {
+      parser_eat(parser, TOKEN_COMMA); /* DESTROY -> , */
+      ast->function_definition_args_size += 1;
+
+      /* Add another slot to the list */
+      ast->function_definition_args = realloc(
+        ast->function_definition_args, 
+        ast->function_definition_args_size * sizeof(struct AST_STRUCT*));
+
+      AST_T* arg = parser_parse_variable(parser, scope);
+      ast->function_definition_args[ast->function_definition_args_size-1] = arg;
+    }
   }
 
   parser_eat(parser, TOKEN_RPAREN); /* DESTROY -> ) */
