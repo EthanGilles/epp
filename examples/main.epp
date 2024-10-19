@@ -1,4 +1,1 @@
-set name = "Successfully";
-set othername = "Installed";
-
-print(name, othername, "E++");
+return 69;

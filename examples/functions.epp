@@ -1,7 +1,0 @@
-fn dosomething() {
-  set str = "function did something";
-  print(str);
-};
-
-dosomething();
-dosomething();
