@@ -208,8 +208,15 @@ CMakeFiles/epp.dir/src/main.cpp.o: ../src/main.cpp \
   /usr/include/c++/11/bits/stl_uninitialized.h \
   /usr/include/c++/11/bits/stl_vector.h \
   /usr/include/c++/11/bits/stl_bvector.h \
-  /usr/include/c++/11/bits/vector.tcc
+  /usr/include/c++/11/bits/vector.tcc \
+  ../src/include/tokenization.hpp \
+  ../src/include/parser.hpp \
+  ../src/include/generation.hpp
 
+
+../src/include/generation.hpp:
+
+../src/include/tokenization.hpp:
 
 /usr/include/c++/11/bits/stl_bvector.h:
 
@@ -412,6 +419,8 @@ CMakeFiles/epp.dir/src/main.cpp.o: ../src/main.cpp \
 /usr/include/c++/11/bits/codecvt.h:
 
 /usr/include/x86_64-linux-gnu/bits/time64.h:
+
+../src/include/parser.hpp:
 
 /usr/include/c++/11/iosfwd:
 
