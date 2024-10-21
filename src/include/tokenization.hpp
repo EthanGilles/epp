@@ -9,6 +9,12 @@ enum class TokenType {
   EXIT, 
   INT_LIT, 
   SEMI,
+  LPAREN,
+  RPAREN,
+  ID,
+  SET,
+  EQUALS,
+
 };
 
 struct Token {
@@ -35,16 +41,26 @@ public:
         {
           buf.push_back(consume());
         }
-        if (buf == "exit") 
+
+        if (buf == "exit") /* Built-in function */
         {
           tokens.push_back ({.type = TokenType::EXIT});
           buf.clear();
           continue;
         }
-        else
+
+        else if (buf == "set") /* Variable Keyword */
         {
-          std::cerr << "Invalid token. " << std::endl;
-          exit (EXIT_FAILURE);
+          tokens.push_back ({.type = TokenType::SET});
+          buf.clear();
+          continue;
+        }
+
+        else /* Identifier */
+        {
+          tokens.push_back({.type = TokenType::ID, .value = buf});
+          buf.clear();
+          continue;
         }
       }
 
@@ -59,9 +75,27 @@ public:
         continue;
       }
 
+      else if (peek().value() == '(')
+      { 
+        consume();
+        tokens.push_back({.type = TokenType::LPAREN});
+      }
+      else if (peek().value() == ')')
+      { 
+        consume();
+        tokens.push_back({.type = TokenType::RPAREN});
+      }
+
       else if (peek().value() == ';')
       {
         tokens.push_back({.type = TokenType::SEMI});
+        consume();
+        continue;
+      }
+
+      else if (peek().value() == '=')
+      {
+        tokens.push_back({.type = TokenType::EQUALS});
         consume();
         continue;
       }
@@ -83,12 +117,12 @@ public:
   }
 
 private:
-  [[nodiscard]] inline std::optional<char> peek(int ahead = 1) const 
+  [[nodiscard]] inline std::optional<char> peek(int offset = 0) const 
   {
-    if (m_index + ahead > m_src.length())
+    if (m_index + offset >= m_src.length())
       return {};
     else
-     return m_src.at(m_index);
+     return m_src.at(m_index + offset);
   }
 
   inline char consume()

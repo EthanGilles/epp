@@ -157,11 +157,25 @@
 \begin{document}
 \hwheadings{}{}{}
 
+\textbf{Notation}
+\begin{align*}
+  * &= 0 \text{ or more}
+\end{align*}
+
 
 \textbf{Producers}
 \begin{align*}
-  [\text{exit}] &\to exit([\text{expr}]) \\
-  [\text{expr}] &\to \text{INT\_LIT}
+  [prog] &\to [\text{statement}]^* \\
+  [statement] &\to 
+  \begin{cases}
+    exit([\text{expr}]); \\ 
+    set \; \text{ID} = [\text{expr}]
+  \end{cases} \\
+  [\text{expr}] &\to 
+  \begin{cases}
+  \text{INT\_LIT} \\ 
+  \text{ID}
+  \end{cases}
 \end{align*}
 
 

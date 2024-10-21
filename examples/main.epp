@@ -1,1 +1,4 @@
-exit 52;
+set x = 7;
+set y = 8;
+set z = 9;
+exit(z);

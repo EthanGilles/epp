@@ -1,15 +1,11 @@
 # Variables
-BUILD_DIR = build
+BUILD_DIR = build/
 OUTPUT_BINARY = epp.out
 LOCAL_BIN = /usr/local/bin
 
 # Default target
 all: 
 	make build
-
-# Build target
-build:
-	cmake --build $(BUILD_DIR)
 
 # Clean target
 clean:
@@ -18,7 +14,7 @@ clean:
 # Test target
 test:
 	./build/epp examples/main.epp
-	./out 
+	./out
 
 # Install target
 install:
