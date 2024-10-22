@@ -165,19 +165,30 @@
 
 \textbf{Producers}
 \begin{align*}
-  [prog] &\to [\text{statement}]^* \\
-  [statement] &\to 
+  [Prog] &\to [\text{Statement}]^* \\
+  [Statement] &\to 
   \begin{cases}
-    exit([\text{expr}]); \\ 
-    set \; \text{ID} = [\text{expr}]
+    \text{EXIT}([\text{Expr}]); \\ 
+    \text{set} \; \text{ID} = [\text{Expr}]
   \end{cases} \\
-  [\text{expr}] &\to 
+  [\text{Expr}] &\to 
   \begin{cases}
-  \text{INT\_LIT} \\ 
-  \text{ID}
+  [\text{Term}] \\ 
+  [\text{BinaryExpr}] \\
+  \end{cases} \\
+  [\text{BinaryExpr}] &\to 
+  \begin{cases}
+    [\text{Expr}] \times [\text{Expr}] & precedence = 1 \\
+    [\text{Expr}] \div [\text{Expr}] & precedence = 1\\
+    [\text{Expr}] + [\text{Expr}] & precedence = 0\\
+    [\text{Expr}] - [\text{Expr}] & precedence = 0\\
+  \end{cases} \\
+  [\text{Term}] &\to
+  \begin{cases}
+    \text{int\_lit} \\ 
+    \text{ID}
   \end{cases}
 \end{align*}
-
 
 \end{document}
 % -----------------------------------------------------------

@@ -14,6 +14,7 @@ enum class TokenType {
   ID,
   SET,
   EQUALS,
+  PLUS,
 
 };
 
@@ -42,7 +43,7 @@ public:
           buf.push_back(consume());
         }
 
-        if (buf == "exit") /* Built-in function */
+        if (buf == "EXIT") /* Built-in function */
         {
           tokens.push_back ({.type = TokenType::EXIT});
           buf.clear();
@@ -96,6 +97,13 @@ public:
       else if (peek().value() == '=')
       {
         tokens.push_back({.type = TokenType::EQUALS});
+        consume();
+        continue;
+      }
+
+      else if (peek().value() == '+')
+      {
+        tokens.push_back({.type = TokenType::PLUS});
         consume();
         continue;
       }

@@ -215,6 +215,7 @@ CMakeFiles/epp.dir/src/main.cpp.o: ../src/main.cpp \
   /usr/include/c++/11/bits/invoke.h \
   /usr/include/c++/11/ext/aligned_buffer.h \
   /usr/include/c++/11/bits/parse_numbers.h \
+  ../src/include/arena.hpp \
   ../src/include/generation.hpp \
   /usr/include/c++/11/unordered_map \
   /usr/include/c++/11/bits/hashtable.h \
@@ -224,7 +225,9 @@ CMakeFiles/epp.dir/src/main.cpp.o: ../src/main.cpp \
   /usr/include/c++/11/bits/uses_allocator.h \
   /usr/include/c++/11/bits/node_handle.h \
   /usr/include/c++/11/bits/unordered_map.h \
-  /usr/include/c++/11/bits/erase_if.h
+  /usr/include/c++/11/bits/erase_if.h \
+  /usr/include/c++/11/cassert \
+  /usr/include/assert.h
 
 
 /usr/include/c++/11/bits/erase_if.h:
@@ -238,6 +241,8 @@ CMakeFiles/epp.dir/src/main.cpp.o: ../src/main.cpp \
 /usr/include/c++/11/bits/hashtable.h:
 
 ../src/include/generation.hpp:
+
+../src/include/arena.hpp:
 
 /usr/include/c++/11/bits/parse_numbers.h:
 
@@ -549,6 +554,8 @@ CMakeFiles/epp.dir/src/main.cpp.o: ../src/main.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/typesizes.h:
 
+/usr/include/c++/11/cassert:
+
 /usr/include/c++/11/bits/stl_algo.h:
 
 /usr/include/x86_64-linux-gnu/bits/endianness.h:
@@ -644,6 +651,8 @@ CMakeFiles/epp.dir/src/main.cpp.o: ../src/main.cpp \
 /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h:
 
 /usr/include/x86_64-linux-gnu/bits/struct_mutex.h:
+
+/usr/include/assert.h:
 
 /usr/include/c++/11/bits/stl_iterator_base_types.h:
 

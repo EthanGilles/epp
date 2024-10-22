@@ -1,4 +1,5 @@
-set x = 7;
-set y = 8;
-set z = 9;
-exit(z);
+set x = 2 + 2 + 3;
+set y = 9;
+set z = 10;
+EXIT(y);
+

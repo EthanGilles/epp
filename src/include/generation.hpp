@@ -1,8 +1,10 @@
 #pragma once 
 #include "parser.hpp"
+#include <cstdio>
 #include <sstream>
 #include <iostream>
 #include <unordered_map>
+#include <cassert>
 
 class Generator
 {
@@ -10,62 +12,86 @@ public:
   inline Generator(NodeProgram root) 
     : m_program(std::move(root)) {}
 
-  void gen_expr(const NodeExpr &expr) 
+  void gen_term(const NodeTerm *term) 
   {
-
-    struct ExprVisitor
-    {
+    struct TermVisitor {
       Generator *gen;
-
-      void operator()(const NodeExprIntLit &expr_int_lit)
+      void operator()(const NodeTermIntLit *term_int_lit) const
       {
-        gen->m_output << "    mov rax, " << expr_int_lit.int_lit.value.value() << "\n";
+        gen->m_output << "    mov rax, " << term_int_lit->int_lit.value.value() << "\n";
         gen->push("rax");
       }
-      void operator()(const NodeExprID &expr_id)
+      void operator()(const NodeTermID *term_id) const
       {
-        if(!gen->m_vars.contains(expr_id.ID.value.value()))
+        if(!gen->m_vars.contains(term_id->ID.value.value()))
         {
-          std::cerr << "Unknown identifier `" << expr_id.ID.value.value() << "`" << std::endl;
+          std::cerr << "Unknown identifier `" << term_id->ID.value.value() << "`" << std::endl;
           exit(EXIT_FAILURE);
         }
-        const auto &var = gen->m_vars.at(expr_id.ID.value.value());
+        const auto &var = gen->m_vars.at(term_id->ID.value.value());
         std::stringstream offset;
         offset << "QWORD [rsp + " << (gen->m_stack_size - var.stack_loc - 1) * 8 << "]\n";
         gen->push(offset.str());
       }
     };
 
-    ExprVisitor visitor {.gen = this};
-    std::visit(visitor, expr.variant);
+    TermVisitor visitor{.gen = this};
+    std::visit(visitor, term->variant);
   }
 
-  void gen_stmt(const NodeStmt &stmt) 
+  void gen_expr(const NodeExpr *expr) 
+  {
+    struct ExprVisitor
+    {
+      Generator *gen;
+
+      void operator()(const NodeTerm *term) const
+      {
+        gen->gen_term(term);
+      }
+
+      void operator()(const NodeBinExpr *bin_expr) const
+      {
+        gen->gen_expr(bin_expr->add->lhs);
+        gen->gen_expr(bin_expr->add->rhs);
+        gen->pop("rax");
+        gen->pop("rbx");
+        gen->m_output << "    add rax, rbx\n";
+        gen->push("rax");
+      }
+
+    };
+
+    ExprVisitor visitor {.gen = this};
+    std::visit(visitor, expr->variant);
+  }
+
+  void gen_stmt(const NodeStmt *stmt) 
   {
     struct StmtVisitor 
     {
       Generator *gen;
-      void operator()(const NodeStmtExit &stmt_exit) const
+      void operator()(const NodeStmtExit *stmt_exit) const
       {
-        gen->gen_expr(stmt_exit.expr);
+        gen->gen_expr(stmt_exit->expr);
         gen->m_output << "    mov rax, 60  ; Syscall number 60 = exit\n";
         gen->pop("rdi");
         gen->m_output << "    syscall\n";
       }
-      void operator()(const NodeStmtSet &stmt_set)
+      void operator()(const NodeStmtSet *stmt_set)
       {
-        if (gen->m_vars.contains(stmt_set.ID.value.value()))
+        if (gen->m_vars.contains(stmt_set->ID.value.value()))
         {
-          std::cerr << "Identifier must be unique `" << stmt_set.ID.value.value() << "`" << std::endl;
+          std::cerr << "Identifier must be unique `" << stmt_set->ID.value.value() << "`" << std::endl;
           exit(EXIT_FAILURE);
         }
-        gen->m_vars.insert( {stmt_set.ID.value.value(), Var { .stack_loc = gen->m_stack_size } } );
-        gen->gen_expr(stmt_set.expr);
+        gen->m_vars.insert( {stmt_set->ID.value.value(), Var { .stack_loc = gen->m_stack_size } } );
+        gen->gen_expr(stmt_set->expr);
       }
     };
 
     StmtVisitor visitor {.gen = this};
-    std::visit(visitor, stmt.variant);
+    std::visit(visitor, stmt->variant);
   }
 
   [[nodiscard]] std::string gen_program() 
@@ -73,7 +99,7 @@ public:
     m_output << "global _start\n_start:\n";
     /* Parse prgram */
 
-    for(const NodeStmt &stmt : m_program.stmts)
+    for(const NodeStmt *stmt : m_program.stmts)
       gen_stmt(stmt);
 
     m_output << "    mov rax, 60  ; Syscall number 60 = exit\n";
@@ -93,7 +119,7 @@ private:
   void pop(const std::string &reg) 
   {
     m_output << "    pop " << reg << "\n";
-    m_stack_size++;
+    m_stack_size--;
   }
 
   struct Var
