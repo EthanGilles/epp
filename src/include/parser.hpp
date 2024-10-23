@@ -1,4 +1,6 @@
 #pragma once 
+#include <cstdlib>
+#include <iostream>
 #include <vector>
 #include <variant>
 #include "arena.hpp"
@@ -14,6 +16,10 @@ struct NodeTermID {
 
 struct NodeExpr;
 
+struct NodeTermParenth {
+  NodeExpr *expr;
+};
+
 struct NodeStmtExit {
   NodeExpr *expr;
 };
@@ -28,12 +34,27 @@ struct NodeBinExprMulti {
   NodeExpr *rhs;
 };
 
+struct NodeBinExprSub {
+  NodeExpr *lhs;
+  NodeExpr *rhs;
+};
+
+struct NodeBinExprDiv {
+  NodeExpr *lhs;
+  NodeExpr *rhs;
+};
+
+struct NodeBinExprMod {
+  NodeExpr *lhs;
+  NodeExpr *rhs;
+};
+
 struct NodeBinExpr {
-  std::variant<NodeBinExprAdd*, NodeBinExprMulti*> variant;
+  std::variant<NodeBinExprAdd*, NodeBinExprMulti*, NodeBinExprSub*, NodeBinExprDiv*, NodeBinExprMod* > variant;
 };
 
 struct NodeTerm {
-  std::variant<NodeTermIntLit*, NodeTermID*> variant;
+  std::variant<NodeTermIntLit*, NodeTermID*, NodeTermParenth* > variant;
 };
 
 struct NodeExpr {
@@ -70,7 +91,6 @@ public:
 
       auto term = m_allocator.alloc<NodeTerm>();
       term->variant = term_int_lit;
-
       return term;
     }
     else if (auto id = try_consume(TokenType::ID))
@@ -80,7 +100,23 @@ public:
 
       auto term = m_allocator.alloc<NodeTerm>();
       term->variant = term_id;
+      return term;
+    }
+    else if (auto op = try_consume(TokenType::LPAREN))
+    {
+      auto expr = parse_expr();
+      if (!expr.has_value())
+      {
+        std::cerr << "Expected expression" << std::endl;
+        exit(EXIT_FAILURE);  
+      }
+      try_consume(TokenType::RPAREN, "Expected `)`");
 
+      auto term_parenth = m_allocator.alloc<NodeTermParenth>();
+      term_parenth->expr = expr.value();
+
+      auto term = m_allocator.alloc<NodeTerm>();
+      term->variant = term_parenth;
       return term;
     }
     else 
@@ -111,31 +147,62 @@ public:
         break;
 
       Token op = consume();
-      int next_min_prec = precedence.value() + 1;
-      auto expr_rhs = parse_expr(next_min_prec);
+      int next_min_precedence = precedence.value() + 1;
+      auto expr_rhs = parse_expr(next_min_precedence);
       if (!expr_rhs.has_value())
       {
-        std::cerr << "Unable to parse expression" << std::endl;
+        std::cerr << "Expected expression following operator" << std::endl;
         exit(EXIT_FAILURE);
       }
 
       auto expr = m_allocator.alloc<NodeBinExpr>();
       auto expr_lhs2 = m_allocator.alloc<NodeExpr>();
-      if (op.type == TokenType::PLUS)
-      {
-        auto add = m_allocator.alloc<NodeBinExprAdd>();
-        expr_lhs2->variant = expr_lhs->variant;
-        add->lhs = expr_lhs2;
-        add->rhs = expr_rhs.value(); /* rhs optional */
-        expr->variant = add;
-      }
-      else if(op.type == TokenType::MULT)
-      {
-        auto multi = m_allocator.alloc<NodeBinExprMulti>();
-        expr_lhs2->variant = expr_lhs->variant;
-        multi->lhs = expr_lhs2;
-        multi->rhs = expr_rhs.value();
-        expr->variant = multi;
+
+      switch (op.type) {
+        case TokenType::MULT: {
+          auto multi = m_allocator.alloc<NodeBinExprMulti>();
+          expr_lhs2->variant = expr_lhs->variant;
+          multi->lhs = expr_lhs2;
+          multi->rhs = expr_rhs.value();
+          expr->variant = multi;
+          break;
+        }
+        case TokenType::PLUS: {
+          auto add = m_allocator.alloc<NodeBinExprAdd>();
+          expr_lhs2->variant = expr_lhs->variant;
+          add->lhs = expr_lhs2;
+          add->rhs = expr_rhs.value();
+          expr->variant = add;
+          break;
+        }
+        case TokenType::SUB: {
+          auto sub = m_allocator.alloc<NodeBinExprSub>();
+          expr_lhs2->variant = expr_lhs->variant;
+          sub->lhs = expr_lhs2;
+          sub->rhs = expr_rhs.value();
+          expr->variant = sub;
+          break;
+        }
+        case TokenType::DIV: {
+          auto div = m_allocator.alloc<NodeBinExprDiv>();
+          expr_lhs2->variant = expr_lhs->variant;
+          div->lhs = expr_lhs2;
+          div->rhs = expr_rhs.value();
+          expr->variant = div;
+          break;
+        }
+        case TokenType::MOD: {
+          auto mod = m_allocator.alloc<NodeBinExprMod>();
+          expr_lhs2->variant = expr_lhs->variant;
+          mod->lhs = expr_lhs2;
+          mod->rhs = expr_rhs.value();
+          expr->variant = mod;
+          break;
+        }
+        default: {
+          std::cerr << "Invalid operator" << std::endl;
+          exit(EXIT_FAILURE);
+        }
       }
       expr_lhs->variant = expr;
     }

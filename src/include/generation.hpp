@@ -33,6 +33,10 @@ public:
         offset << "QWORD [rsp + " << (gen->m_stack_size - var.stack_loc - 1) * 8 << "] ; Variable value\n";
         gen->push(offset.str());
       }
+      void operator()(const NodeTermParenth *term_parenth) const
+      {
+        gen->gen_expr(term_parenth->expr);
+      }
     };
 
     TermVisitor visitor{.gen = this};
@@ -43,22 +47,50 @@ public:
   {
     struct BinExprVisitor {
       Generator *gen;
+      void operator()(const NodeBinExprMulti *multi) const
+      {
+        gen->gen_expr(multi->rhs);
+        gen->gen_expr(multi->lhs);
+        gen->pop("rax");
+        gen->pop("rbx");
+        gen->m_output << "    mul rbx\n";
+        gen->push("rax");
+      }
+      void operator()(const NodeBinExprDiv *div) const 
+      {
+        gen->gen_expr(div->rhs);
+        gen->gen_expr(div->lhs);
+        gen->pop("rax");
+        gen->pop("rbx");
+        gen->m_output << "    div rbx\n";
+        gen->push("rax");
+      }
+      void operator()(const NodeBinExprMod *mod) const
+      {
+        gen->gen_expr(mod->rhs);
+        gen->gen_expr(mod->lhs);
+        gen->pop("rax");
+        gen->pop("rbx");
+        gen->m_output << "    xor  rdx, rdx\n"; /* clear rdx */
+        gen->m_output << "    div rbx\n";
+        gen->push("rdx"); /* rdx has remainder */
+      }
       void operator()(const NodeBinExprAdd *add) const
       {
-        gen->gen_expr(add->lhs);
         gen->gen_expr(add->rhs);
+        gen->gen_expr(add->lhs);
         gen->pop("rax");
         gen->pop("rbx");
         gen->m_output << "    add rax, rbx\n";
         gen->push("rax");
       }
-      void operator()(const NodeBinExprMulti *multi) const
+      void operator()(const NodeBinExprSub *sub) const
       {
-        gen->gen_expr(multi->lhs);
-        gen->gen_expr(multi->rhs);
+        gen->gen_expr(sub->rhs);
+        gen->gen_expr(sub->lhs);
         gen->pop("rax");
         gen->pop("rbx");
-        gen->m_output << "    mul rbx\n";
+        gen->m_output << "    sub rax, rbx\n";
         gen->push("rax");
       }
     };

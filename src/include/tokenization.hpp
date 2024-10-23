@@ -1,6 +1,7 @@
 #pragma once
 #include <cctype>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include <optional>
 #include <iostream>
@@ -18,6 +19,7 @@ enum class TokenType {
   MULT, // '*'
   SUB, // '-'
   DIV, // '/'
+  MOD, // %
 };
 
 bool is_bin_op(TokenType type)
@@ -27,6 +29,7 @@ bool is_bin_op(TokenType type)
     case TokenType::MULT:
     case TokenType::SUB:
     case TokenType::DIV:
+    case TokenType::MOD:
       return true;
     default:
       return false;
@@ -37,11 +40,10 @@ std::optional<int> bin_prec(TokenType type)
 {
   switch(type) {
     case TokenType::MULT:
-      return 1;
     case TokenType::DIV:
+    case TokenType::MOD:
       return 1;
     case TokenType::PLUS:
-      return 0;
     case TokenType::SUB:
       return 0;
     default:
@@ -68,6 +70,7 @@ public:
     {
       if (std::isalpha(peek().value()))
       {
+        /* Add entire word to the buffer */
         buf.push_back(consume());
         while (peek().has_value() && std::isalnum(peek().value()))
         {
@@ -78,21 +81,18 @@ public:
         {
           tokens.push_back ({.type = TokenType::EXIT});
           buf.clear();
-          continue;
         }
 
         else if (buf == "set") /* Variable Keyword */
         {
           tokens.push_back ({.type = TokenType::SET});
           buf.clear();
-          continue;
         }
 
         else /* Identifier */
         {
           tokens.push_back({.type = TokenType::ID, .value = buf});
           buf.clear();
-          continue;
         }
       }
 
@@ -104,7 +104,6 @@ public:
 
         tokens.push_back({.type = TokenType::INT_LIT, .value = buf});
         buf.clear();
-        continue;
       }
 
       else if (peek().value() == '(')
@@ -122,45 +121,43 @@ public:
       {
         tokens.push_back({.type = TokenType::SEMI});
         consume();
-        continue;
       }
 
       else if (peek().value() == '=')
       {
         tokens.push_back({.type = TokenType::EQUALS});
         consume();
-        continue;
       }
 
       else if (peek().value() == '+')
       {
         tokens.push_back({.type = TokenType::PLUS});
         consume();
-        continue;
       }
       else if (peek().value() == '*')
       {
         tokens.push_back({.type = TokenType::MULT});
         consume();
-        continue;
       }
       else if (peek().value() == '-')
       {
         tokens.push_back({.type = TokenType::SUB});
         consume();
-        continue;
       }
       else if (peek().value() == '/')
       {
         tokens.push_back({.type = TokenType::DIV});
         consume();
-        continue;
+      }
+      else if (peek().value() == '%')
+      {
+        tokens.push_back({.type = TokenType::MOD});
+        consume();
       }
 
       else if(std::isspace(peek().value()))
       {
         consume();
-        continue;
       }
 
       else
