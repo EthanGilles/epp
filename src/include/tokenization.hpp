@@ -13,10 +13,41 @@ enum class TokenType {
   RPAREN,
   ID,
   SET,
-  EQUALS,
-  PLUS,
-
+  EQUALS, // '='
+  PLUS, // '+'
+  MULT, // '*'
+  SUB, // '-'
+  DIV, // '/'
 };
+
+bool is_bin_op(TokenType type)
+{
+  switch(type) {
+    case TokenType::PLUS:
+    case TokenType::MULT:
+    case TokenType::SUB:
+    case TokenType::DIV:
+      return true;
+    default:
+      return false;
+  }
+}
+
+std::optional<int> bin_prec(TokenType type)
+{
+  switch(type) {
+    case TokenType::MULT:
+      return 1;
+    case TokenType::DIV:
+      return 1;
+    case TokenType::PLUS:
+      return 0;
+    case TokenType::SUB:
+      return 0;
+    default:
+      return {};
+  }
+}
 
 struct Token {
   TokenType type;
@@ -107,6 +138,24 @@ public:
         consume();
         continue;
       }
+      else if (peek().value() == '*')
+      {
+        tokens.push_back({.type = TokenType::MULT});
+        consume();
+        continue;
+      }
+      else if (peek().value() == '-')
+      {
+        tokens.push_back({.type = TokenType::SUB});
+        consume();
+        continue;
+      }
+      else if (peek().value() == '/')
+      {
+        tokens.push_back({.type = TokenType::DIV});
+        consume();
+        continue;
+      }
 
       else if(std::isspace(peek().value()))
       {
@@ -116,7 +165,7 @@ public:
 
       else
       {
-          std::cerr << "Unexpected character." << std::endl;
+          std::cerr << "Invalid token." << std::endl;
           exit(EXIT_FAILURE);
       }
     }

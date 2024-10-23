@@ -30,13 +30,41 @@ public:
         }
         const auto &var = gen->m_vars.at(term_id->ID.value.value());
         std::stringstream offset;
-        offset << "QWORD [rsp + " << (gen->m_stack_size - var.stack_loc - 1) * 8 << "]\n";
+        offset << "QWORD [rsp + " << (gen->m_stack_size - var.stack_loc - 1) * 8 << "] ; Variable value\n";
         gen->push(offset.str());
       }
     };
 
     TermVisitor visitor{.gen = this};
     std::visit(visitor, term->variant);
+  }
+
+  void gen_bin_expr(const NodeBinExpr *bin_expr)
+  {
+    struct BinExprVisitor {
+      Generator *gen;
+      void operator()(const NodeBinExprAdd *add) const
+      {
+        gen->gen_expr(add->lhs);
+        gen->gen_expr(add->rhs);
+        gen->pop("rax");
+        gen->pop("rbx");
+        gen->m_output << "    add rax, rbx\n";
+        gen->push("rax");
+      }
+      void operator()(const NodeBinExprMulti *multi) const
+      {
+        gen->gen_expr(multi->lhs);
+        gen->gen_expr(multi->rhs);
+        gen->pop("rax");
+        gen->pop("rbx");
+        gen->m_output << "    mul rbx\n";
+        gen->push("rax");
+      }
+    };
+
+    BinExprVisitor visitor {.gen = this};
+    std::visit(visitor, bin_expr->variant);
   }
 
   void gen_expr(const NodeExpr *expr) 
@@ -52,12 +80,7 @@ public:
 
       void operator()(const NodeBinExpr *bin_expr) const
       {
-        gen->gen_expr(bin_expr->add->lhs);
-        gen->gen_expr(bin_expr->add->rhs);
-        gen->pop("rax");
-        gen->pop("rbx");
-        gen->m_output << "    add rax, rbx\n";
-        gen->push("rax");
+        gen->gen_bin_expr(bin_expr);
       }
 
     };
@@ -103,7 +126,7 @@ public:
       gen_stmt(stmt);
 
     m_output << "    mov rax, 60  ; Syscall number 60 = exit\n";
-    m_output << "    mov rdi, 0   ; Exit value \n";
+    m_output << "    mov rdi, 0   ; End program \n";
     m_output << "    syscall";
     return m_output.str();
   }

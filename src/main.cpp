@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
+
   std::string content = get_file_content(argv[1]);
 
   Tokenizer tokenizer(std::move(content));
