@@ -66,8 +66,19 @@ struct NodeStmtSet {
   NodeExpr* expr;
 };
 
+struct NodeStmt;
+
+struct NodeScope {
+  std::vector<NodeStmt*> stmts;
+};
+
+struct NodeStmtIf {
+  NodeExpr* expr;
+  NodeScope* scope;
+};
+
 struct NodeStmt {
-  std::variant<NodeStmtExit*, NodeStmtSet*> variant;
+  std::variant<NodeStmtExit*, NodeStmtSet*, NodeScope*, NodeStmtIf* > variant;
 };
 
 struct NodeProgram {
@@ -159,7 +170,7 @@ public:
       auto expr_lhs2 = m_allocator.alloc<NodeExpr>();
 
       switch (op.type) {
-        case TokenType::MULT: {
+        case TokenType::STAR: {
           auto multi = m_allocator.alloc<NodeBinExprMulti>();
           expr_lhs2->variant = expr_lhs->variant;
           multi->lhs = expr_lhs2;
@@ -175,7 +186,7 @@ public:
           expr->variant = add;
           break;
         }
-        case TokenType::SUB: {
+        case TokenType::MINUS: {
           auto sub = m_allocator.alloc<NodeBinExprSub>();
           expr_lhs2->variant = expr_lhs->variant;
           sub->lhs = expr_lhs2;
@@ -183,7 +194,7 @@ public:
           expr->variant = sub;
           break;
         }
-        case TokenType::DIV: {
+        case TokenType::FSLASH: {
           auto div = m_allocator.alloc<NodeBinExprDiv>();
           expr_lhs2->variant = expr_lhs->variant;
           div->lhs = expr_lhs2;
@@ -191,7 +202,7 @@ public:
           expr->variant = div;
           break;
         }
-        case TokenType::MOD: {
+        case TokenType::PERCENT: {
           auto mod = m_allocator.alloc<NodeBinExprMod>();
           expr_lhs2->variant = expr_lhs->variant;
           mod->lhs = expr_lhs2;
@@ -209,9 +220,22 @@ public:
     return expr_lhs;
   }
 
+  std::optional<NodeScope*> parse_scope() {
+    if(!try_consume(TokenType::LCURLY).has_value())
+      return {};
+
+    auto scope = m_allocator.alloc<NodeScope>();
+    /* Parse statements inside scope */
+    while (auto stmt = parse_stmt())
+      scope->stmts.push_back(stmt.value());
+
+    try_consume(TokenType::RCURLY, "Expected `}`");
+    return scope;
+  }
+
   std::optional<NodeStmt*> parse_stmt()
   {
-    /* PARSE EXIT */
+    /* PARSE -> EXIT */
     if (peek().value().type == TokenType::EXIT && peek(1).has_value() 
       && peek(1).value().type == TokenType::LPAREN)
     {
@@ -237,7 +261,7 @@ public:
       stmt->variant = stmt_exit;
       return stmt;
     }
-    /* PARSE SET ID = EXPR */
+    /* PARSE -> SET ID = EXPR */
     else if (peek().has_value() && peek().value().type == TokenType::SET  /* SET */
     && peek(1).has_value() && peek(1).value().type == TokenType::ID       /* ID  */
     && peek(2).has_value() && peek(2).value().type == TokenType::EQUALS)  /*  =  */
@@ -246,6 +270,7 @@ public:
       auto stmt_set = m_allocator.alloc<NodeStmtSet>();
       stmt_set->ID = consume(); /* consume ID */
       consume(); /* consume = */
+
       if (auto expr = parse_expr())
         stmt_set->expr = expr.value();
       else
@@ -258,6 +283,49 @@ public:
 
       auto stmt = m_allocator.alloc<NodeStmt>();
       stmt->variant = stmt_set;
+      return stmt;
+    }
+    /* PARSE -> SCOPE */
+    else if (peek().has_value() && peek().value().type == TokenType::LCURLY)
+    {
+      if(auto scope = parse_scope())
+      {
+        auto stmt = m_allocator.alloc<NodeStmt>();
+        stmt->variant = scope.value();
+        return stmt;
+      }
+      else
+      {
+        std::cerr << "Invalid scope" << std::endl;
+        exit(EXIT_FAILURE);
+      }
+    }
+    /* PARSE -> IF ( EXPR ) { STMT } */
+    else if (auto if_ = try_consume(TokenType::IF)) 
+    {
+      try_consume(TokenType::LPAREN, "Expected `(`");
+
+      auto if_stmt = m_allocator.alloc<NodeStmtIf>();
+      if(auto expr = parse_expr())
+        if_stmt->expr = expr.value();
+      else
+      {
+        std::cerr << "Invalid expression" << std::endl;
+        exit (EXIT_FAILURE);
+      }
+
+      try_consume(TokenType::RPAREN, "Expected `)`");
+
+      if (auto scope = parse_scope())
+        if_stmt->scope = scope.value();
+      else
+      {
+        std::cerr << "Invalid scope" << std::endl;
+        exit(EXIT_FAILURE);
+      }
+
+      auto stmt = m_allocator.alloc<NodeStmt>();
+      stmt->variant = if_stmt;
       return stmt;
     }
     else 

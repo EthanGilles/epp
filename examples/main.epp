@@ -1,4 +1,15 @@
-set n = 56 % 10;
-set x = 10 - 2 * 3 / 2 + 20 * 2 - 5; 
-set y = x + 4;
-EXIT(n);
+set x = (10 - 2 * 3) / 2;
+set y = 1;
+
+// This is a bigger comment
+
+if (y - 1) { 
+  exit(69);
+}
+
+/* 
+exit(4);
+exit(1);
+*/
+
+exit(5);

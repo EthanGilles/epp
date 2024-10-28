@@ -157,20 +157,33 @@
 \begin{document}
 \hwheadings{}{}{}
 
+\textbf{Rules} \\ 
+\begin{itemize}
+  \item Variable \textit{shadowing} is \textbf{not} allowed. Having a variable with the same name 
+    in an inner scope is invalid, unless the variable is first 
+    declared in the inner scope. 
+  \item You must terminate a statement with a semicolon, \textit{unless} that 
+    statement \textbf{ends} with a scope. 
+  \item Single line comments are denoted by `//' and Multi-line comments are denoted with `/* */'
+\end{itemize}
+
 \textbf{Notation}
 \begin{align*}
   * &= 0 \text{ or more}
 \end{align*}
-
 
 \textbf{Producers}
 \begin{align*}
   [Prog] &\to [\text{Statement}]^* \\
   [Statement] &\to 
   \begin{cases}
-    \text{EXIT}([\text{Expr}]); \\ 
-    \text{set} \; \text{ID} = [\text{Expr}]
+    \text{exit}([\text{Expr}]); \\ 
+    \text{set} \; \text{ID} = [\text{Expr}] \\
+    \text{set} \; \text{ID} = [\text{String}] \\
+    \text{if} ([\text{Expr}])[\text{Scope}]  \\
+    [\text{Scope}] \\
   \end{cases} \\
+  [\text{Scope}] &\to \{[\text{Stmt}]^*\} \\
   [\text{Expr}] &\to 
   \begin{cases}
   [\text{Term}] \\ 
@@ -180,6 +193,7 @@
   \begin{cases}
     [\text{Expr}] \times [\text{Expr}] & precedence = 1 \\
     [\text{Expr}] \div [\text{Expr}] & precedence = 1\\
+    [\text{Expr}] \,\%\, [\text{Expr}] & precedence = 1\\
     [\text{Expr}] + [\text{Expr}] & precedence = 0\\
     [\text{Expr}] - [\text{Expr}] & precedence = 0\\
   \end{cases} \\
@@ -188,6 +202,10 @@
     \text{int\_lit} \\ 
     \text{ID} \\ 
     \left([\text{Expr}]\right)
+  \end{cases} \\
+  [\text{String}] &\to
+  \begin{cases}
+    \text{[char\_lit]^*}
   \end{cases}
 \end{align*}
 

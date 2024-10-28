@@ -7,29 +7,34 @@
 #include <iostream>
 
 enum class TokenType { 
-  EXIT, 
-  INT_LIT, 
-  SEMI,
-  LPAREN,
-  RPAREN,
-  ID,
-  SET,
+  EXIT, // 'exit'
+  SET, // 'set'
+  IF, // 'if'
+  ID, // 'x'
+  INT_LIT, // '59'
+  SEMI, // ';'
+  LPAREN, // '('
+  RPAREN, // ')'
+  LCURLY, // '{'
+  RCURLY, //'}'
   EQUALS, // '='
   PLUS, // '+'
-  MULT, // '*'
-  SUB, // '-'
-  DIV, // '/'
-  MOD, // %
+  STAR, // '*'
+  MINUS, // '-'
+  FSLASH, // '/'
+  PERCENT, // '%'
+  QUOTATION, // '"'
 };
+
 
 bool is_bin_op(TokenType type)
 {
   switch(type) {
     case TokenType::PLUS:
-    case TokenType::MULT:
-    case TokenType::SUB:
-    case TokenType::DIV:
-    case TokenType::MOD:
+    case TokenType::STAR:
+    case TokenType::MINUS:
+    case TokenType::FSLASH:
+    case TokenType::PERCENT:
       return true;
     default:
       return false;
@@ -39,12 +44,12 @@ bool is_bin_op(TokenType type)
 std::optional<int> bin_prec(TokenType type)
 {
   switch(type) {
-    case TokenType::MULT:
-    case TokenType::DIV:
-    case TokenType::MOD:
+    case TokenType::STAR:
+    case TokenType::FSLASH:
+    case TokenType::PERCENT:
       return 1;
     case TokenType::PLUS:
-    case TokenType::SUB:
+    case TokenType::MINUS:
       return 0;
     default:
       return {};
@@ -58,44 +63,35 @@ struct Token {
 
 class Tokenizer {
 public:
-  inline explicit Tokenizer(const std::string& src) 
+  Tokenizer(const std::string& src) 
     : m_src(std::move(src)) {}
 
-  inline std::vector<Token> tokenize() 
+
+  std::vector<Token> tokenize() 
   {
     std::vector<Token> tokens;
     std::string buf;
 
     while (peek().has_value())
     {
+      /* Tokenize word */
       if (std::isalpha(peek().value()))
       {
         /* Add entire word to the buffer */
         buf.push_back(consume());
         while (peek().has_value() && std::isalnum(peek().value()))
-        {
           buf.push_back(consume());
-        }
 
-        if (buf == "EXIT") /* Built-in function */
-        {
-          tokens.push_back ({.type = TokenType::EXIT});
-          buf.clear();
-        }
+        auto it = keywordMap.find(buf); // Look for keyword
+        if (it != keywordMap.end()) // Is a keyword
+            tokens.push_back( {.type = it->second} ); 
+        else // Is identifier
+            tokens.push_back( {.type = TokenType::ID, .value = buf} );
 
-        else if (buf == "set") /* Variable Keyword */
-        {
-          tokens.push_back ({.type = TokenType::SET});
-          buf.clear();
-        }
-
-        else /* Identifier */
-        {
-          tokens.push_back({.type = TokenType::ID, .value = buf});
-          buf.clear();
-        }
+        buf.clear();
       }
 
+      /* Tokenize number */
       else if (std::isdigit(peek().value()))
       {
         buf.push_back(consume());
@@ -106,52 +102,38 @@ public:
         buf.clear();
       }
 
-      else if (peek().value() == '(')
-      { 
-        consume();
-        tokens.push_back({.type = TokenType::LPAREN});
-      }
-      else if (peek().value() == ')')
-      { 
-        consume();
-        tokens.push_back({.type = TokenType::RPAREN});
+      /* One line comment */
+      else if (peek().value() == '/' && peek(1).has_value() && peek(1).value() == '/') {
+        /* // comment example */
+        consume(); // First slash
+        consume(); // Second slash
+        while(peek().has_value() && peek().value() != '\n') 
+          consume(); // Skip everything until new line character
       }
 
-      else if (peek().value() == ';')
-      {
-        tokens.push_back({.type = TokenType::SEMI});
-        consume();
+      /* Multi-line comment */
+      else if (peek().value() == '/' && peek(1).has_value() && peek(1).value() == '*') {
+        // /* comment example */
+        consume(); // Slash
+        consume(); // Star
+        while(peek().has_value()) {
+          if(peek().value() == '*' && peek(1).has_value() && peek(1).value() == '/')
+            break;
+          consume(); // Skip everything until new line character
+        }
+
+        // If comment is closed 
+        if(peek().has_value())
+          consume(); // Slash
+        if(peek().has_value())
+          consume(); // Star
       }
 
-      else if (peek().value() == '=')
-      {
-        tokens.push_back({.type = TokenType::EQUALS});
-        consume();
-      }
 
-      else if (peek().value() == '+')
+      /* Look for single char tokens */
+      else if (tokenMap.find(peek().value()) != tokenMap.end()) 
       {
-        tokens.push_back({.type = TokenType::PLUS});
-        consume();
-      }
-      else if (peek().value() == '*')
-      {
-        tokens.push_back({.type = TokenType::MULT});
-        consume();
-      }
-      else if (peek().value() == '-')
-      {
-        tokens.push_back({.type = TokenType::SUB});
-        consume();
-      }
-      else if (peek().value() == '/')
-      {
-        tokens.push_back({.type = TokenType::DIV});
-        consume();
-      }
-      else if (peek().value() == '%')
-      {
-        tokens.push_back({.type = TokenType::MOD});
+        tokens.push_back( {.type = tokenMap[peek().value()]} );
         consume();
       }
 
@@ -171,7 +153,7 @@ public:
   }
 
 private:
-  [[nodiscard]] inline std::optional<char> peek(int offset = 0) const 
+  [[nodiscard]] std::optional<char> peek(int offset = 0) const 
   {
     if (m_index + offset >= m_src.length())
       return {};
@@ -179,10 +161,30 @@ private:
      return m_src.at(m_index + offset);
   }
 
-  inline char consume()
+  char consume()
   {
     return m_src.at(m_index++);
   }
+
+  std::unordered_map<char, TokenType> tokenMap = {
+    {'(', TokenType::LPAREN},
+    {')', TokenType::RPAREN},
+    {'{', TokenType::LCURLY},
+    {'}', TokenType::RCURLY},
+    {';', TokenType::SEMI},
+    {'=', TokenType::EQUALS},
+    {'+', TokenType::PLUS},
+    {'*', TokenType::STAR},
+    {'-', TokenType::MINUS},
+    {'/', TokenType::FSLASH},
+    {'%', TokenType::PERCENT}
+  };
+
+  std::unordered_map<std::string, TokenType> keywordMap = {
+      {"exit", TokenType::EXIT},
+      {"set", TokenType::SET},
+      {"if", TokenType::IF},
+  };
 
   const std::string m_src;
   size_t m_index = 0;
