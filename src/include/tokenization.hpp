@@ -10,8 +10,11 @@ enum class TokenType {
   EXIT, // 'exit'
   SET, // 'set'
   IF, // 'if'
+  ELSIF, // 'elsif'
+  ELSE, // 'else'
   ID, // 'x'
   INT_LIT, // '59'
+  STRING, // "hello"
   SEMI, // ';'
   LPAREN, // '('
   RPAREN, // ')'
@@ -70,7 +73,7 @@ public:
   std::vector<Token> tokenize() 
   {
     std::vector<Token> tokens;
-    std::string buf;
+    std::string buffer;
 
     while (peek().has_value())
     {
@@ -78,28 +81,42 @@ public:
       if (std::isalpha(peek().value()))
       {
         /* Add entire word to the buffer */
-        buf.push_back(consume());
+        buffer.push_back(consume());
         while (peek().has_value() && std::isalnum(peek().value()))
-          buf.push_back(consume());
+          buffer.push_back(consume());
 
-        auto it = keywordMap.find(buf); // Look for keyword
-        if (it != keywordMap.end()) // Is a keyword
-            tokens.push_back( {.type = it->second} ); 
+        auto keyword = keywordMap.find(buffer); // Look for keyword
+        if (keyword != keywordMap.end()) // Is a keyword
+            tokens.push_back( {.type = keyword->second} ); 
         else // Is identifier
-            tokens.push_back( {.type = TokenType::ID, .value = buf} );
+            tokens.push_back( {.type = TokenType::ID, .value = buffer} );
 
-        buf.clear();
+        buffer.clear();
       }
 
       /* Tokenize number */
       else if (std::isdigit(peek().value()))
       {
-        buf.push_back(consume());
+        buffer.push_back(consume());
         while (peek().has_value() && std::isdigit(peek().value()))
-          buf.push_back(consume());
+          buffer.push_back(consume());
 
-        tokens.push_back({.type = TokenType::INT_LIT, .value = buf});
-        buf.clear();
+        tokens.push_back({.type = TokenType::INT_LIT, .value = buffer});
+        buffer.clear();
+      }
+
+      /* Tokenize string */
+      else if (peek().value() == '"') {
+        consume();
+        while(peek().has_value()) {
+          if(peek().value() == '"')
+            break;
+          buffer.push_back(consume());
+        }
+        consume();
+
+        tokens.push_back({.type = TokenType::STRING, .value = buffer});
+        buffer.clear();
       }
 
       /* One line comment */
@@ -184,6 +201,8 @@ private:
       {"exit", TokenType::EXIT},
       {"set", TokenType::SET},
       {"if", TokenType::IF},
+      {"elsif", TokenType::ELSIF},
+      {"else", TokenType::ELSE},
   };
 
   const std::string m_src;

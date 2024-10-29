@@ -2,6 +2,7 @@
 #include "parser.hpp"
 #include <algorithm>
 #include <cstdio>
+#include <iterator>
 #include <sstream>
 #include <iostream>
 #include <cassert>
@@ -131,6 +132,36 @@ public:
     end_scope();
   }
 
+  void gen_if_pred(const NodeIfPred* pred, const std::string &end_label) {
+    struct PredVisitor {
+      Generator &gen;
+      const std::string &end_label;
+      void operator()(const NodeIfPredElsif *elsif) const
+      {
+        gen.gen_expr(elsif->expr);
+        gen.pop("rax");
+        const std::string label = gen.create_label();
+        gen.m_output << "    test rax, rax\n";
+        gen.m_output << "    jz " << label << "\n";
+        gen.gen_scope(elsif->scope);
+        gen.m_output << "    jmp " << end_label << "\n";
+
+        if (elsif->predicate.has_value()) {
+          gen.m_output << label << ":\n";
+          gen.gen_if_pred(elsif->predicate.value(), end_label);
+        }
+
+      }
+      void operator()(const NodeIfPredElse *else_) const
+      {
+        gen.gen_scope(else_->scope);
+      }
+    };
+
+    PredVisitor visitor {.gen = *this, .end_label = end_label};
+    std::visit(visitor, pred->variant);
+  }
+
   void gen_stmt(const NodeStmt *stmt) 
   {
     struct StmtVisitor 
@@ -169,6 +200,11 @@ public:
         gen.m_output << "    jz " << label << "\n";
         gen.gen_scope(stmt_if->scope);
         gen.m_output << label << ":\n";
+        if (stmt_if->predicate.has_value()) {
+          const std::string end_label = gen.create_label();
+          gen.gen_if_pred(stmt_if->predicate.value(), end_label);
+          gen.m_output << end_label << ":\n";
+        }
       }
     };
 
