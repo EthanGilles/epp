@@ -8,6 +8,9 @@
 #include "include/parser.hpp"
 #include "include/generation.hpp"
 
+#define DEFAULT_MAX_PR 1
+#define DEFAULT_MIN_PR 0.1
+
 static std::string get_file_content(std::string filename)
 {
   std::string content;
@@ -46,8 +49,10 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
+  // define custom please values here if desired.
+
   {
-    Generator generator(program.value());
+    Generator generator(program.value(), DEFAULT_MAX_PR, DEFAULT_MIN_PR);
     std::fstream file("out.asm", std::ios::out);
     file << generator.gen_program();
   }

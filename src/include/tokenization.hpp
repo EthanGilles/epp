@@ -12,6 +12,8 @@ enum class TokenType {
   IF, // 'if'
   ELSIF, // 'elsif'
   ELSE, // 'else'
+  PLEASE, // 'please'
+  PLEASE_C, // 'PLEASE'
   ID, // 'x'
   INT_LIT, // '59'
   SEMI, // ';'
@@ -187,6 +189,8 @@ private:
       {"if", TokenType::IF},
       {"elsif", TokenType::ELSIF},
       {"else", TokenType::ELSE},
+      {"please", TokenType::PLEASE},
+      {"PLEASE", TokenType::PLEASE_C},
   };
 
   const std::string m_src;

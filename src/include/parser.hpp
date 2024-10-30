@@ -6,6 +6,7 @@
 #include "arena.hpp"
 #include "tokenization.hpp"
 
+
 struct NodeTermIntLit {
   Token int_lit;
 };
@@ -94,9 +95,13 @@ struct NodeStmtIf {
   std::optional<NodeIfPred*> predicate;
 };
 
+struct NodeStmtPlease {
+  size_t value;
+};
+
 //TODO: use using instead of a struct 
 struct NodeStmt {
-  std::variant<NodeStmtExit*, NodeStmtSet*, NodeScope*, NodeStmtIf* > variant;
+  std::variant<NodeStmtExit*, NodeStmtSet*, NodeScope*, NodeStmtIf*, NodeStmtPlease*> variant;
 };
 
 struct NodeProgram {
@@ -278,6 +283,16 @@ public:
   std::optional<NodeStmt*> parse_stmt()
   {
     /* PARSE -> EXIT */
+    if(peek().value().type == TokenType::PLEASE || peek().value().type == TokenType::PLEASE_C) {
+      auto please = m_allocator.emplace<NodeStmtPlease>();
+      if(peek().value().type == TokenType::PLEASE)
+        please->value = 1;
+      else
+        please->value = 2;
+      consume();
+      auto stmt = m_allocator.emplace<NodeStmt>(please);
+      return stmt;
+    }
     if (peek().value().type == TokenType::EXIT && peek(1).has_value() 
       && peek(1).value().type == TokenType::LPAREN)
     {

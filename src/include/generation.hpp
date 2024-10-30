@@ -12,8 +12,10 @@
 class Generator
 {
 public:
-  inline Generator(NodeProgram root) 
-    : m_program(std::move(root)) {}
+  inline Generator(NodeProgram root, float max_please, float min_please) 
+    : m_program(std::move(root))
+    , m_max_please(max_please)
+    , m_min_please(min_please){}
 
   void gen_term(const NodeTerm *term) 
   {
@@ -206,8 +208,14 @@ public:
           gen.m_output << end_label << ":\n";
         }
       }
+      void operator()(const NodeStmtPlease* stmt_pls) 
+      {
+        gen.m_please_count += stmt_pls->value;
+        gen.m_please_stmt += 1;
+      }
     };
 
+    m_stmt_count++;
     StmtVisitor visitor {.gen = *this};
     std::visit(visitor, stmt->variant);
   }
@@ -219,6 +227,23 @@ public:
 
     for(const NodeStmt *stmt : m_program.stmts)
       gen_stmt(stmt);
+
+    float totalstmts = m_stmt_count - m_please_stmt;
+    float please_ratio = m_please_count / totalstmts;
+
+    if (please_ratio < m_min_please) {
+      // not polite enough
+      std::cerr << "Not polite enough\n";
+    }
+    if (please_ratio > m_max_please) {
+      // too polite
+      std::cerr << "Too polite\n";
+    }
+
+    // For testing please counts.
+    // std::cout << "please ratio: " << please_ratio << "\n";
+    // std::cout << "please count: " << m_please_count << "\n";
+    // std::cout << "total stmts: " << totalstmts << "\n";
 
     m_output << "    mov rax, 60  ; Syscall number 60 = exit\n";
     m_output << "    mov rdi, 0   ; End program \n";
@@ -267,7 +292,13 @@ private:
     std::string name;
     size_t stack_loc;
   };
+
+  float m_please_count = 0;
+  float m_please_stmt = 0;
+  float m_stmt_count = 0;
   
+  float m_max_please;
+  float m_min_please;
   const NodeProgram m_program;
   std::stringstream m_output;
   size_t m_stack_size = 0;
