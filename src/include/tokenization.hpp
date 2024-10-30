@@ -14,7 +14,6 @@ enum class TokenType {
   ELSE, // 'else'
   ID, // 'x'
   INT_LIT, // '59'
-  STRING, // "hello"
   SEMI, // ';'
   LPAREN, // '('
   RPAREN, // ')'
@@ -26,7 +25,6 @@ enum class TokenType {
   MINUS, // '-'
   FSLASH, // '/'
   PERCENT, // '%'
-  QUOTATION, // '"'
 };
 
 
@@ -102,20 +100,6 @@ public:
           buffer.push_back(consume());
 
         tokens.push_back({.type = TokenType::INT_LIT, .value = buffer});
-        buffer.clear();
-      }
-
-      /* Tokenize string */
-      else if (peek().value() == '"') {
-        consume();
-        while(peek().has_value()) {
-          if(peek().value() == '"')
-            break;
-          buffer.push_back(consume());
-        }
-        consume();
-
-        tokens.push_back({.type = TokenType::STRING, .value = buffer});
         buffer.clear();
       }
 
