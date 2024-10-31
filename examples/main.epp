@@ -1,4 +1,17 @@
-set name = "Successfully";
-set othername = "Installed";
+set x = (10 - 2 * 3) / 2;
+set y = 1;
 
-print(name, othername, "E++");
+//This is a comment
+
+if (0) { 
+  please reset x = 1;
+} 
+elsif (0) {
+  reset x = ;
+} 
+else {
+  please reset x = 3;
+}
+
+
+exit(x);

@@ -1,20 +1,23 @@
-exec = epp.out
-sources = $(wildcard src/*.c)
-objects = $(sources:.c=.o)
-flags = -g
+# Variables
+BUILD_DIR = build/
+OUTPUT_BINARY = epp.out
+LOCAL_BIN = /usr/local/bin
 
+# Default target
+all: 
+	make build
 
-$(exec): $(objects)
-	gcc $(objects) $(flags) -o $(exec)
-
-%.o: %.c include/%.h
-	gcc -c $(flags) $< -o $@
-
-install:
-	make
-	cp ./epp.out /usr/local/bin/epp
-
+# Clean target
 clean:
-	-rm *.out
-	-rm *.o
-	-rm src/*.o
+	rm -f out*
+
+# Test target
+test:
+	./build/epp examples/main.epp
+	./out
+
+# Install target
+install:
+	make build
+	cp $(BUILD_DIR)/$(OUTPUT_BINARY) $(LOCAL_BIN)/epp
+	chmod +x $(LOCAL_BIN)/epp
