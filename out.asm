@@ -1,5 +1,6 @@
 global _start
 _start:
+    ;; /set
     mov rax, 2
     push rax
     mov rax, 3
@@ -20,50 +21,51 @@ _start:
     pop rbx
     div rbx
     push rax
+    ;; /set
     mov rax, 1
     push rax
-    mov rax, 1
-    push rax
-    push QWORD [rsp + 8] ; Variable value
-    pop rax
-    pop rbx
-    sub rax, rbx
+    ;; /if
+    mov rax, 0
     push rax
     pop rax
     test rax, rax
     jz label0
-    mov rax, 69
-    push rax
-    mov rax, 60  ; Syscall number 60 = exit
-    pop rdi
-    syscall
-    add rsp, 0
-label0:
+    ;; /reset
     mov rax, 1
     push rax
-    push QWORD [rsp + 8] ; Variable value
     pop rax
-    pop rbx
-    sub rax, rbx
+    mov [rsp + 8], rax
+    add rsp, 0
+    jmp label1
+label0:
+    ;; /elseif
+    mov rax, 0
     push rax
     pop rax
     test rax, rax
     jz label2
-    mov rax, 68
+    ;; /reset
+    mov rax, 2
     push rax
-    mov rax, 60  ; Syscall number 60 = exit
-    pop rdi
-    syscall
+    pop rax
+    mov [rsp + 8], rax
     add rsp, 0
     jmp label1
 label2:
-    mov rax, 67
+    ;; /else
+    ;; /reset
+    mov rax, 3
     push rax
+    pop rax
+    mov [rsp + 8], rax
+    add rsp, 0
+label1:
+    ;; /if
+    ;; /exit
+    push QWORD [rsp + 8] ; Variable value
     mov rax, 60  ; Syscall number 60 = exit
     pop rdi
     syscall
-    add rsp, 0
-label1:
     mov rax, 60  ; Syscall number 60 = exit
-    mov rdi, 0   ; End program 
+    xor rdi, rdi ; End program with 0
     syscall

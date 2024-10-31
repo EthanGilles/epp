@@ -2,7 +2,6 @@
 #include "parser.hpp"
 #include <algorithm>
 #include <cstdio>
-#include <iterator>
 #include <sstream>
 #include <iostream>
 #include <cassert>
@@ -140,6 +139,7 @@ public:
       const std::string &end_label;
       void operator()(const NodeIfPredElsif *elsif) const
       {
+        gen.m_output << "    ;; /elseif\n";
         gen.gen_expr(elsif->expr);
         gen.pop("rax");
         const std::string label = gen.create_label();
@@ -156,6 +156,7 @@ public:
       }
       void operator()(const NodeIfPredElse *else_) const
       {
+        gen.m_output << "    ;; /else\n";
         gen.gen_scope(else_->scope);
       }
     };
@@ -171,13 +172,16 @@ public:
       Generator &gen;
       void operator()(const NodeStmtExit *stmt_exit) const
       {
+        gen.m_output << "    ;; /exit\n";
         gen.gen_expr(stmt_exit->expr);
         gen.m_output << "    mov rax, 60  ; Syscall number 60 = exit\n";
         gen.pop("rdi");
         gen.m_output << "    syscall\n";
+
       }
       void operator()(const NodeStmtSet *stmt_set)
       {
+        gen.m_output << "    ;; /set\n";
         const auto it = std::ranges::find_if(std::as_const(gen.m_vars), [&](const Var& var) 
             { return var.name == stmt_set->ID.value.value(); });
 
@@ -189,24 +193,46 @@ public:
         gen.m_vars.push_back( {.name = stmt_set->ID.value.value(), .stack_loc = gen.m_stack_size } );
         gen.gen_expr(stmt_set->expr);
       }
+      void operator()(const NodeStmtReset *stmt_reset) 
+      {
+        gen.m_output << "    ;; /reset\n";
+        auto it = std::ranges::find_if(gen.m_vars, [&](const Var& var) 
+            { return var.name == stmt_reset->ID.value.value(); });
+
+        if (it == gen.m_vars.cend())
+        {
+          std::cerr << "Resetting an undeclared identifier: `" << stmt_reset->ID.value.value() << "`" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+        gen.gen_expr(stmt_reset->expr);
+        gen.pop("rax");
+        gen.m_output << "    mov [rsp + " << (gen.m_stack_size - it->stack_loc - 1) * 8 << "], rax\n";
+      }
       void operator()(const NodeScope *stmt_scope) 
       {
         gen.gen_scope(stmt_scope);
       }
       void operator()(const NodeStmtIf *stmt_if)
       {
+        gen.m_output << "    ;; /if\n";
         gen.gen_expr(stmt_if->expr);
         gen.pop("rax");
         const std::string label = gen.create_label();
         gen.m_output << "    test rax, rax\n";
         gen.m_output << "    jz " << label << "\n";
         gen.gen_scope(stmt_if->scope);
-        gen.m_output << label << ":\n";
-        if (stmt_if->predicate.has_value()) {
+        if (stmt_if->predicate.has_value())  
+        {
           const std::string end_label = gen.create_label();
+          gen.m_output << "    jmp " << end_label << "\n";
+          gen.m_output << label << ":\n";
           gen.gen_if_pred(stmt_if->predicate.value(), end_label);
           gen.m_output << end_label << ":\n";
         }
+        else
+          gen.m_output << label << ":\n";
+
+        gen.m_output << "    ;; /if\n";
       }
       void operator()(const NodeStmtPlease* stmt_pls) 
       {
@@ -229,26 +255,35 @@ public:
       gen_stmt(stmt);
 
     float totalstmts = m_stmt_count - m_please_stmt;
-    float please_ratio = m_please_count / totalstmts;
+    float polite = m_please_count / totalstmts;
 
-    if (please_ratio < m_min_please) {
-      // not polite enough
-      std::cerr << "Not polite enough\n";
-    }
-    if (please_ratio > m_max_please) {
-      // too polite
-      std::cerr << "Too polite\n";
-    }
-
+    if (polite < m_min_please) 
+      polite_msg("You haven't been polite enough for the compiler.");
+    else if (polite > m_max_please) 
+      polite_msg("You've been way too polite for the compiler.");
+    
     // For testing please counts.
-    // std::cout << "please ratio: " << please_ratio << "\n";
-    // std::cout << "please count: " << m_please_count << "\n";
-    // std::cout << "total stmts: " << totalstmts << "\n";
+    std::cout << "please ratio: " << polite << "\n";
+    std::cout << "please count: " << m_please_count << "\n";
+    std::cout << "total stmts: " << totalstmts << "\n";
 
     m_output << "    mov rax, 60  ; Syscall number 60 = exit\n";
-    m_output << "    mov rdi, 0   ; End program \n";
+    m_output << "    xor rdi, rdi ; End program with 0\n";
     m_output << "    syscall";
     return m_output.str();
+  }
+
+  void polite_msg(const std::string &msg) 
+  {
+    m_output.str("");
+    m_output << "section .data\n    msg db \"" << msg << "\", 0xA\n";
+    m_output << "msg_len equ $ - msg\n    ;; /set msg and length\n";
+    m_output << "section .text\n    global _start\n\n_start:\n";
+    m_output << "    mov rax, 1\n";
+    m_output << "    mov rdi, 1\n";
+    m_output << "    mov rsi, msg\n";
+    m_output << "    mov rdx, msg_len\n";
+    m_output << "    syscall\n";;
   }
 
 private:

@@ -167,20 +167,16 @@
   \item Single line comments are denoted by `//' and Multi-line comments are denoted with `/* */'
 \end{itemize}
 
-\textbf{Notation}
-\begin{align*}
-  * &= 0 \text{ or more} \\
-  \epsilon &= \text{Empty string / Null}
-\end{align*}
-
 \textbf{Producers}
 \begin{align*}
   [Prog] &\to [\text{Statement}]^* \\
   [Statement] &\to 
   \begin{cases}
+    \text{please} \\
+    \text{PLEASE} \\
     \text{exit}([\text{Expr}]); \\ 
-    \text{set} \; \text{ID} = [\text{Expr}] \\
-    \text{set} \; \text{ID} = [\text{String}] \\
+    \text{set} \; \text{ID} = [\text{Expr}]; \\
+    \text{reset} \; \text{ID} = [text{Expr}]; \\
     \text{if} ([\text{Expr}])[\text{Scope}][\text{AfterIf}]  \\
     [\text{Scope}] \\
   \end{cases} \\

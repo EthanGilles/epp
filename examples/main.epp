@@ -1,17 +1,17 @@
 set x = (10 - 2 * 3) / 2;
 set y = 1;
 
-// This is a bigger comment
+//This is a comment
 
-if (y - 1) { 
-  exit(69);
-} elsif (y - 1) {
-  exit(68);
-} else {
-  exit(67);
+if (0) { 
+  please reset x = 1;
+} 
+elsif (0) {
+  reset x = ;
+} 
+else {
+  please reset x = 3;
 }
 
 
-/* 
-exit(4);
-*/
+exit(x);

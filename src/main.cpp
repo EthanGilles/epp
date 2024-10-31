@@ -9,7 +9,7 @@
 #include "include/generation.hpp"
 
 #define DEFAULT_MAX_PR 1
-#define DEFAULT_MIN_PR 0.1
+#define DEFAULT_MIN_PR 0.25
 
 static std::string get_file_content(std::string filename)
 {
