@@ -1,4 +1,7 @@
-global _start
+section .data
+    char db 0    ;; Allocate byte for a char
+section .text
+    global _start
 _start:
     ;; /set
     mov rax, 2
@@ -24,45 +27,68 @@ _start:
     ;; /set
     mov rax, 1
     push rax
-    ;; /if
+    ;; /set
     mov rax, 0
     push rax
+    ;; /if
+    push QWORD [rsp + 0] ; Variable value
     pop rax
     test rax, rax
     jz label0
     ;; /reset
-    mov rax, 1
+    mov rax, 2
+    push rax
+    mov rax, 15
     push rax
     pop rax
-    mov [rsp + 8], rax
+    pop rbx
+    add rax, rbx
+    push rax
+    pop rax
+    mov [rsp + 0], rax
     add rsp, 0
     jmp label1
 label0:
-    ;; /elseif
-    mov rax, 1
-    push rax
-    pop rax
-    test rax, rax
-    jz label2
+    ;; /else
     ;; /reset
     mov rax, 20
     push rax
     pop rax
-    mov [rsp + 8], rax
-    add rsp, 0
-    jmp label1
-label2:
-    ;; /else
-    ;; /reset
-    mov rax, 3
-    push rax
-    pop rax
-    mov [rsp + 8], rax
+    mov [rsp + 16], rax
     add rsp, 0
 label1:
     ;; /if
+    ;; /print
+    mov rax, 65
+    push rax
+    pop rax
+    mov [char], al  ;; Store expr in char
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, char
+    mov rdx, 1
+    syscall
+    mov rax, 66
+    push rax
+    pop rax
+    mov [char], al  ;; Store expr in char
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, char
+    mov rdx, 1
+    syscall
+    mov rax, 67
+    push rax
+    pop rax
+    mov [char], al  ;; Store expr in char
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, char
+    mov rdx, 1
+    syscall
     ;; /exit
-    push QWORD [rsp + 8] ; Variable value
+    mov rax, 0
+    push rax
     mov rax, 60  ; Syscall number 60 = exit
     pop rdi
     syscall

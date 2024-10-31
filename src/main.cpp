@@ -8,8 +8,8 @@
 #include "include/parser.hpp"
 #include "include/generation.hpp"
 
-#define DEFAULT_MAX_PR 1
-#define DEFAULT_MIN_PR 0.25
+#define DEFAULT_MAX_PR 3
+#define DEFAULT_MIN_PR 1
 
 static std::string get_file_content(std::string filename)
 {

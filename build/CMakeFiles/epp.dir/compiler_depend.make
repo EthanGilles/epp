@@ -272,6 +272,7 @@ CMakeFiles/epp.dir/src/main.cpp.o: ../src/main.cpp \
   /usr/include/c++/11/bits/uses_allocator_args.h \
   /usr/include/c++/11/pstl/glue_memory_defs.h \
   /usr/include/c++/11/pstl/execution_defs.h \
+  ../src/include/token-utils.cpp \
   ../src/include/generation.hpp \
   /usr/include/c++/11/algorithm \
   /usr/include/c++/11/bits/ranges_algo.h \
@@ -778,6 +779,8 @@ CMakeFiles/epp.dir/src/main.cpp.o: ../src/main.cpp \
 /usr/include/x86_64-linux-gnu/bits/types/clockid_t.h:
 
 /usr/include/c++/11/bits/stl_bvector.h:
+
+../src/include/token-utils.cpp:
 
 ../src/include/tokenization.hpp:
 

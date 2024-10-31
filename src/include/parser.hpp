@@ -5,6 +5,7 @@
 #include <variant>
 #include "arena.hpp"
 #include "tokenization.hpp"
+#include "token-utils.cpp"
 
 
 struct NodeTermIntLit {
@@ -23,6 +24,10 @@ struct NodeTermParenth {
 
 struct NodeStmtExit {
   NodeExpr *expr;
+};
+
+struct NodeStmtPrint {
+  std::vector<NodeExpr*> args;
 };
 
 struct NodeBinExprAdd {
@@ -51,7 +56,13 @@ struct NodeBinExprMod {
 };
 
 struct NodeBinExpr {
-  std::variant<NodeBinExprAdd*, NodeBinExprMulti*, NodeBinExprSub*, NodeBinExprDiv*, NodeBinExprMod* > variant;
+  std::variant<
+  NodeBinExprAdd*, 
+  NodeBinExprMulti*, 
+  NodeBinExprSub*, 
+  NodeBinExprDiv*, 
+  NodeBinExprMod* 
+  > variant;
 };
 
 struct NodeTerm {
@@ -108,6 +119,7 @@ struct NodeStmt {
   std::variant<
   NodeStmtExit*, 
   NodeStmtSet*, 
+  NodeStmtPrint*, 
   NodeScope*, 
   NodeStmtIf*, 
   NodeStmtPlease*, 
@@ -284,7 +296,7 @@ public:
 
   std::optional<NodeStmt*> parse_stmt()
   {
-    /* PARSE -> EXIT */
+    /* PARSE -> 'please' or 'PLEASE' */
     if( (peek().has_value() && peek().value().type == TokenType::PLEASE) || 
         (peek().has_value() && peek().value().type == TokenType::PLEASE_C) )
     {
@@ -299,7 +311,8 @@ public:
       auto stmt = m_allocator.emplace<NodeStmt>(please);
       return stmt;
     }
-    if (peek().has_value() && peek().value().type == TokenType::EXIT && 
+    /* PARSE -> EXIT */
+    else if (peek().has_value() && peek().value().type == TokenType::GOODBYE && 
         peek(1).has_value() && peek(1).value().type == TokenType::LPAREN)
     {
       consume(); /* Consume EXIT */
@@ -322,6 +335,36 @@ public:
 
       auto stmt = m_allocator.emplace<NodeStmt>();
       stmt->variant = stmt_exit;
+      return stmt;
+    }
+    /* PARSE -> PRINT (EXPR, EXPR, ...) */
+    else if (peek().has_value() && peek().value().type == TokenType::PRINT && 
+        peek(1).has_value() && peek(1).value().type == TokenType::LPAREN)
+    {
+      consume(); /* Consume PRINT */
+      consume(); /* Consume LPAREN */
+      std::vector<NodeExpr*> args;
+
+      while (true)
+      {
+        if(auto expr = parse_expr())
+          args.push_back(expr.value());
+        else
+          error_expected("expression");
+
+        if(peek().has_value() && peek().value().type == TokenType::COMMA)
+          consume();
+        else if (peek().has_value() && peek().value().type == TokenType::RPAREN)
+        {
+          consume();
+          break;
+        }
+      }
+
+      try_consume_err(TokenType::SEMI);
+      auto print_stmt = m_allocator.emplace<NodeStmtPrint>();
+      print_stmt->args = args;
+      auto stmt = m_allocator.emplace<NodeStmt>(print_stmt);
       return stmt;
     }
     /* PARSE -> SET ID = EXPR */

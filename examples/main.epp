@@ -1,17 +1,17 @@
+PLEASE PLEASE PLEASE PLEASE PLEASE PLEASE please
 set x = (10 - 2 * 3) / 2;
 set y = 1;
+set z = 0;
 
-//This is a comment
+// This is a comment
+/* also a comment */
 
-if (0) { 
-  please reset x = 1;
-} 
-elsif (1) {
-  reset x = 20;
-} 
+if (z) {
+  reset z = 15+2;
+}
 else {
-  please reset x = 3;
+  reset x = 20;
 }
 
-
-exit(x);
+print(65, 66, 67);
+goodbye(0);

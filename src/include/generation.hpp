@@ -35,6 +35,7 @@ public:
           std::cerr << "Undeclared identifier: " << term_id->ID.value.value() << std::endl;
           exit(EXIT_FAILURE);
         }
+
         std::stringstream offset;
         offset << "QWORD [rsp + " << (gen.m_stack_size - (*it).stack_loc - 1) * 8 << "] ; Variable value";
         gen.push(offset.str());
@@ -170,6 +171,7 @@ public:
     struct StmtVisitor 
     {
       Generator &gen;
+      /* GENERATE -> exit() */
       void operator()(const NodeStmtExit *stmt_exit) const
       {
         gen.m_output << "    ;; /exit\n";
@@ -179,6 +181,24 @@ public:
         gen.m_output << "    syscall\n";
 
       }
+      /* GENERATE -> print() */
+      void operator()(const NodeStmtPrint *stmt_print) const
+      {
+        std::vector args = stmt_print->args;
+        gen.m_output << "    ;; /print\n";
+        for(NodeExpr *argument : args) {
+          gen.gen_expr(argument);
+          gen.pop("rax");
+          gen.m_output << "    mov [char], al  ;; Store expr in char\n";
+
+          gen.m_output << "    mov rax, 1\n";
+          gen.m_output << "    mov rdi, 1\n";
+          gen.m_output << "    mov rsi, char\n";
+          gen.m_output << "    mov rdx, 1\n";
+          gen.m_output << "    syscall\n";
+        }
+      }
+      /* GENERATE -> set ID = expr */
       void operator()(const NodeStmtSet *stmt_set)
       {
         gen.m_output << "    ;; /set\n";
@@ -193,6 +213,7 @@ public:
         gen.m_vars.push_back( {.name = stmt_set->ID.value.value(), .stack_loc = gen.m_stack_size } );
         gen.gen_expr(stmt_set->expr);
       }
+      /* GENERATE -> reset ID = expr */
       void operator()(const NodeStmtReset *stmt_reset) 
       {
         gen.m_output << "    ;; /reset\n";
@@ -208,10 +229,12 @@ public:
         gen.pop("rax");
         gen.m_output << "    mov [rsp + " << (gen.m_stack_size - it->stack_loc - 1) * 8 << "], rax\n";
       }
+      /* GENERATE -> { } */
       void operator()(const NodeScope *stmt_scope) 
       {
         gen.gen_scope(stmt_scope);
       }
+      /* GENERATE -> if{ } */
       void operator()(const NodeStmtIf *stmt_if)
       {
         gen.m_output << "    ;; /if\n";
@@ -234,6 +257,7 @@ public:
 
         gen.m_output << "    ;; /if\n";
       }
+      /* GENERATE -> please or PLEASE */
       void operator()(const NodeStmtPlease* stmt_pls) 
       {
         gen.m_please_count += stmt_pls->value;
@@ -248,7 +272,13 @@ public:
 
   [[nodiscard]] std::string gen_program() 
   {
-    m_output << "global _start\n_start:\n";
+    m_output << "section .data\n";
+    m_output << "    char db 0    ;; Allocate byte for a char\n";
+
+    m_output << "section .text\n";
+    m_output << "    global _start\n";
+
+    m_output << "_start:\n";
     /* Parse prgram */
 
     for(const NodeStmt *stmt : m_program.stmts)
@@ -276,8 +306,8 @@ public:
   void polite_msg(const std::string &msg) 
   {
     m_output.str("");
-    m_output << "section .data\n    msg db \"" << msg << "\", 0xA\n";
-    m_output << "msg_len equ $ - msg\n    ;; /set msg and length\n";
+    m_output << "section .data\n    msg db \"" << msg << "\"\n";
+    m_output << "    msg_len equ $ - msg\n    ;; /set msg and length\n\n";
     m_output << "section .text\n    global _start\n\n_start:\n";
     m_output << "    mov rax, 1\n";
     m_output << "    mov rdi, 1\n";
@@ -309,7 +339,7 @@ private:
   {
     const size_t pop_count = m_vars.size() - m_scopes.back();
     m_output << "    add rsp, " << pop_count * 8 << "\n";
-    m_stack_size-= pop_count;
+    m_stack_size -= pop_count;
 
     for(int i = 0; i < pop_count; i++)
       m_vars.pop_back();
