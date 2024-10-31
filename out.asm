@@ -39,13 +39,13 @@ _start:
     jmp label1
 label0:
     ;; /elseif
-    mov rax, 0
+    mov rax, 1
     push rax
     pop rax
     test rax, rax
     jz label2
     ;; /reset
-    mov rax, 2
+    mov rax, 20
     push rax
     pop rax
     mov [rsp + 8], rax

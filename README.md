@@ -2,25 +2,8 @@
 
 ----------------------------------------------------
 
-An interpreted language written in C++. 
+A compiler written in C++ for the E pluh 🗣️ pluh 🗣️ language.
 
-Examples folder has examples of code in the language.
+make sure you say please enough or the compiler will be mad.
 
-## Installing E++
 
-Run the following commands
-
-```
-git clone git@github.com:EthanGilles/epp.git
-cd epp
-make install
-epp examples/main.epp
-```
-
-And you should get:
-```
-Successfully
-Installed 
-E++
-```
-As an output. Congrats! You can now code in E++.

@@ -6,8 +6,8 @@ set y = 1;
 if (0) { 
   please reset x = 1;
 } 
-elsif (0) {
-  reset x = ;
+elsif (1) {
+  reset x = 20;
 } 
 else {
   please reset x = 3;
