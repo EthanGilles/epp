@@ -1,6 +1,7 @@
 #pragma once
 #include "tokenization.hpp"
 
+
 std::string to_string(const TokenType type)
 {
   /* Returns a literal string representation of the token */

@@ -1,6 +1,6 @@
 # Variables
-BUILD_DIR = build/
-OUTPUT_BINARY = epp.out
+BUILD_DIR = build
+OUTPUT_BINARY = please
 LOCAL_BIN = /usr/local/bin
 
 # Default target
@@ -11,13 +11,17 @@ all:
 clean:
 	rm -f out*
 
-# Test target
+# Test 
 test:
-	./build/epp examples/main.epp
+	./build/please examples/testing.epp
 	./out
 
 # Install target
 install:
-	make build
-	cp $(BUILD_DIR)/$(OUTPUT_BINARY) $(LOCAL_BIN)/epp
-	chmod +x $(LOCAL_BIN)/epp
+	cmake --build build/
+	cp $(BUILD_DIR)/$(OUTPUT_BINARY) $(LOCAL_BIN)/please
+	chmod +x $(LOCAL_BIN)/please
+
+install-test:
+	please examples/hello.epp -o hello
+	./hello

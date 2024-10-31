@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+
 class Generator
 {
 public:
@@ -273,10 +274,10 @@ public:
   [[nodiscard]] std::string gen_program() 
   {
     m_output << "section .data\n";
-    m_output << "    char db 0    ;; Allocate byte for a char\n";
+    m_output << "    char db 0    ;; Allocate byte for a char\n\n";
 
     m_output << "section .text\n";
-    m_output << "    global _start\n";
+    m_output << "    global _start\n\n";
 
     m_output << "_start:\n";
     /* Parse prgram */
@@ -293,9 +294,9 @@ public:
       polite_msg("You've been way too polite for the compiler.");
     
     // For testing please counts.
-    std::cout << "please ratio: " << polite << "\n";
-    std::cout << "please count: " << m_please_count << "\n";
-    std::cout << "total stmts: " << totalstmts << "\n";
+    // std::cout << "please ratio: " << polite << "\n";
+    // std::cout << "please count: " << m_please_count << "\n";
+    // std::cout << "total stmts: " << totalstmts << "\n";
 
     m_output << "    mov rax, 60  ; Syscall number 60 = exit\n";
     m_output << "    xor rdi, rdi ; End program with 0\n";

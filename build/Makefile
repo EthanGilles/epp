@@ -117,24 +117,24 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named epp
+# Target rules for targets named please
 
 # Build rule for target.
-epp: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 epp
-.PHONY : epp
+please: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 please
+.PHONY : please
 
 # fast build rule for target.
-epp/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/epp.dir/build.make CMakeFiles/epp.dir/build
-.PHONY : epp/fast
+please/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/please.dir/build.make CMakeFiles/please.dir/build
+.PHONY : please/fast
 
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
 # target to build an object file
 src/main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/epp.dir/build.make CMakeFiles/epp.dir/src/main.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/please.dir/build.make CMakeFiles/please.dir/src/main.cpp.o
 .PHONY : src/main.cpp.o
 
 src/main.i: src/main.cpp.i
@@ -142,7 +142,7 @@ src/main.i: src/main.cpp.i
 
 # target to preprocess a source file
 src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/epp.dir/build.make CMakeFiles/epp.dir/src/main.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/please.dir/build.make CMakeFiles/please.dir/src/main.cpp.i
 .PHONY : src/main.cpp.i
 
 src/main.s: src/main.cpp.s
@@ -150,7 +150,7 @@ src/main.s: src/main.cpp.s
 
 # target to generate assembly for a file
 src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/epp.dir/build.make CMakeFiles/epp.dir/src/main.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/please.dir/build.make CMakeFiles/please.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
 # Help Target
@@ -161,7 +161,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... epp"
+	@echo "... please"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

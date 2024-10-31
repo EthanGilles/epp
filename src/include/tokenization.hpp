@@ -24,6 +24,7 @@ enum class TokenType {
   LCURLY, // '{'
   RCURLY, //'}'
   EQUALS, // '='
+  TO, // 'to'
   PLUS, // '+'
   STAR, // '*'
   MINUS, // '-'
@@ -148,7 +149,6 @@ private:
     return m_src.at(m_index++);
   }
 
-
   std::unordered_map<char, TokenType> tokenMap = {
     {'(', TokenType::LPAREN},
     {')', TokenType::RPAREN},
@@ -169,6 +169,7 @@ private:
       {"print", TokenType::PRINT},
       {"set", TokenType::SET},
       {"reset", TokenType::RESET},
+      {"to", TokenType::EQUALS},
       {"if", TokenType::IF},
       {"elsif", TokenType::ELSIF},
       {"else", TokenType::ELSE},

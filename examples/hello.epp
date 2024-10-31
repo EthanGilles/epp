@@ -1,0 +1,11 @@
+please set H to 72;
+please set e to 101;
+set l = 108;
+set o = 100 + 10 + 2 - 1;
+please set space to 8 * 4;
+set W = 87;
+please set r = 114;
+set d = 100;
+set excl = 3 * 11;
+
+PLEASE print(H, e, l, l, o, space, W, o, r, l, d, excl);

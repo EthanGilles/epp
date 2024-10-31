@@ -4,8 +4,6 @@ project(Epp)
 
 set(CMAKE_CXX_STANDARD 20)
 
-file(GLOB HEADER_FILES "include/*.hpp")
-
-add_executable(epp src/main.cpp ${HEADER_FILES})
+add_executable(please src/main.cpp)
 
 include_directories(include)
