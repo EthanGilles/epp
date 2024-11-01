@@ -10,7 +10,7 @@
 #include "include/parser.hpp"
 #include "include/generation.hpp"
 
-#define DEFAULT_MAX_PR 0.65
+#define DEFAULT_MAX_PR 0.76
 #define DEFAULT_MIN_PR 0.35
 
 static std::string get_file_content(std::string filename)
