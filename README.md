@@ -105,6 +105,7 @@ An example of the grammar is shown below, with the production rules for statemen
 
 $$
 \textbf{Producers} \\
+
 \begin{align*}
   [\text{Prog}] &\to [\text{Statement}]^* \\
   [\text{Statement}] &\to 
