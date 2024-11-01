@@ -103,8 +103,8 @@ The full documentation for the grammar is available in `docs/grammar.pdf`
 The documentation is created using LaTeX and has the production rules of the grammar. 
 An example of the grammar is shown below, with the production rules for statements.
 
-$$$
-\textbf{Producers}
+$$
+\textbf{Producers} \\
 \begin{align*}
   [\text{Prog}] &\to [\text{Statement}]^* \\
   [\text{Statement}] &\to 
@@ -118,7 +118,7 @@ $$$
     [\text{Scope}] \\
   \end{cases} \\
 \end{align*}
-$$$
+$$
 
 
 ## Project Structure
