@@ -157,7 +157,11 @@
 \begin{document}
 \hwheadings{}{}{}
 
-\textbf{Rules} \\ 
+\textbf{Project Idea} \\
+Create a programming language and compiler. Below are some formal grammar rules 
+and syntax for the language, E++. \\
+
+\textbf{Syntax}
 \begin{itemize}
   \item Variable \textit{shadowing} is \textbf{not} allowed. Having a variable with the same name 
     in an inner scope is invalid, unless the variable is first 
@@ -165,18 +169,19 @@
   \item You must terminate a statement with a semicolon, \textit{unless} that 
     statement \textbf{ends} with a scope. 
   \item Single line comments are denoted by `//' and Multi-line comments are denoted with `/* */'
+  \item You must say \textbf{please} or \textbf{PLEASE} enough to satisfy the compiler.
 \end{itemize}
 
 \textbf{Producers}
 \begin{align*}
-  [Prog] &\to [\text{Statement}]^* \\
-  [Statement] &\to 
+  [\text{Program}] &\to [\text{Statement}]^* \\
+  [\text{Statement}] &\to 
   \begin{cases}
     \text{please} \\
     \text{PLEASE} \\
     \text{exit}([\text{Expr}]); \\ 
     \text{set} \; \text{ID} = [\text{Expr}]; \\
-    \text{reset} \; \text{ID} = [text{Expr}]; \\
+    \text{reset} \; \text{ID} = [\text{Expr}]; \\
     \text{if} ([\text{Expr}])[\text{Scope}][\text{AfterIf}]  \\
     [\text{Scope}] \\
   \end{cases} \\

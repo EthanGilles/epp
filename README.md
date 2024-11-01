@@ -103,8 +103,7 @@ The full documentation for the grammar is available in `docs/grammar.pdf`
 The documentation is created using LaTeX and has the production rules of the grammar. 
 An example of the grammar is shown below, with the production rules for statements.
 
-$$$
-\textbf{Producers}
+$$
 \begin{align*}
   [\text{Prog}] &\to [\text{Statement}]^* \\
   [\text{Statement}] &\to 
@@ -112,13 +111,13 @@ $$$
     \text{please} \\
     \text{PLEASE} \\
     \text{exit}([\text{Expr}]); \\ 
-    \text{set} \; \text{ID} = [\text{Expr}]; \\
-    \text{reset} \; \text{ID} = [text{Expr}]; \\
+    \text{set} \space \text{ID} = [\text{Expr}]; \\
+    \text{reset} \space \text{ID} = [text{Expr}]; \\
     \text{if} ([\text{Expr}])[\text{Scope}][\text{AfterIf}]  \\
     [\text{Scope}] \\
   \end{cases} \\
-\end{align}
-$$$
+\end{align*}
+$$
 
 
 ## Project Structure
