@@ -104,8 +104,6 @@ The documentation is created using LaTeX and has the production rules of the gra
 An example of the grammar is shown below, with the production rules for statements.
 
 $$
-\textbf{Producers} \\
-
 \begin{align*}
   [\text{Prog}] &\to [\text{Statement}]^* \\
   [\text{Statement}] &\to 
