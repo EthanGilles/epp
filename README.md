@@ -117,7 +117,7 @@ $$$
     \text{if} ([\text{Expr}])[\text{Scope}][\text{AfterIf}]  \\
     [\text{Scope}] \\
   \end{cases} \\
-\end{align}
+\end{align*}
 $$$
 
 
