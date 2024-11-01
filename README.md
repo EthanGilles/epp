@@ -111,8 +111,8 @@ $$
     \text{please} \\
     \text{PLEASE} \\
     \text{exit}([\text{Expr}]); \\ 
-    \text{set} \; \text{ID} = [\text{Expr}]; \\
-    \text{reset} \; \text{ID} = [text{Expr}]; \\
+    \text{set} \text{ID} = [\text{Expr}]; \\
+    \text{reset} \text{ID} = [text{Expr}]; \\
     \text{if} ([\text{Expr}])[\text{Scope}][\text{AfterIf}]  \\
     [\text{Scope}] \\
   \end{cases} \\
