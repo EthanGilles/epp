@@ -25,3 +25,6 @@ install:
 install-test:
 	please examples/hello.epp -o hello
 	./hello
+
+count-lines:
+	./build/count-lines.sh src/main.cpp src/include/*
