@@ -190,12 +190,11 @@ public:
         for(NodeExpr *argument : args) {
           gen.gen_expr(argument);
           gen.pop("rax");
-          gen.m_output << "    mov [char], al  ;; Store expr in char\n";
-
+          gen.m_output << "    mov [char], al  ;; Store rax in char\n";
           gen.m_output << "    mov rax, 1\n";
           gen.m_output << "    mov rdi, 1\n";
-          gen.m_output << "    mov rsi, char\n";
           gen.m_output << "    mov rdx, 1\n";
+          gen.m_output << "    mov rsi, char\n";
           gen.m_output << "    syscall\n";
         }
       }
@@ -327,7 +326,21 @@ private:
 
   void pop(const std::string &reg) 
   {
-    m_output << "    pop " << reg << "\n";
+    std::string output = m_output.str();
+    std::string search = "    push " + reg + "\n";
+
+    /* Worth it? (almost certainly not) Or is it faster to have an extra push and pop instruction? */
+    if (output.size() > search.size() && output.rfind(search) == output.size() - search.size()) 
+    {
+      output.resize(output.size() - search.size());
+      m_output.str("");
+      m_output << output;
+      m_output << "    ;; push-pop removed " << reg << "\n";
+    }
+    else
+      m_output << "    pop " << reg << "\n";
+
+    // m_output << "    pop " << reg << "\n";
     m_stack_size--;
   }
 

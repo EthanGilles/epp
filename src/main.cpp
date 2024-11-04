@@ -33,14 +33,14 @@ int main(int argc, char *argv[])
   {
     std::cerr << "Incorrect Usage. Correct usage is.. " << std::endl;
     std::cerr << "please <input.epp>" << std::endl;
-    return EXIT_FAILURE;
+    return (EXIT_FAILURE);
   }
 
   std::filesystem::path filePath = argv[1];
   if (!std::filesystem::exists(filePath)) 
   {
     std::cerr << "File `" << filePath.string() << "` does not exist.\n";
-    exit(EXIT_FAILURE);
+    exit (EXIT_FAILURE);
   }
 
   std::string outputFilename = "out";
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
   if (!program.has_value())
   {
     std::cerr << "Invalid program" << std::endl;
-    exit(EXIT_FAILURE);
+    exit (EXIT_FAILURE);
   }
 
   // define custom please values here if desired.
@@ -73,11 +73,11 @@ int main(int argc, char *argv[])
   }
 
   std::string command = "nasm -f elf64 " + outputFilename + ".asm";
-  system(command.c_str());
+  system (command.c_str());
   command = "ld -o " + outputFilename + " " + outputFilename + ".o";
-  system(command.c_str());
+  system (command.c_str());
   command = outputFilename + ".o";
-  remove(command.c_str());
+  remove (command.c_str());
 
-  return EXIT_SUCCESS;
+  return (EXIT_SUCCESS);
 }
