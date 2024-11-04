@@ -5,6 +5,7 @@
 #include <vector>
 #include <optional>
 #include <iostream>
+#include <cassert>
 
 enum class TokenType { 
   GOODBYE, // 'goodbye'
@@ -31,6 +32,13 @@ enum class TokenType {
   FSLASH, // '/'
   PERCENT, // '%'
   COMMA, // ','
+  LT, // '<'
+  LTEQ, // '<='
+  GT, // '>'
+  GTEQ, // '>='
+  NOTEQ, // '!='
+  NOT, // '!'
+  DBEQ, // '=='
 };
 
 struct Token {
@@ -61,7 +69,7 @@ public:
         while (peek().has_value() && std::isalnum(peek().value()))
           buffer.push_back(consume());
 
-        auto keyword = keywordMap.find(buffer); // Look for keyword
+        auto keyword = keywordMap.find(buffer);
         if (keyword != keywordMap.end()) // Is a keyword
             tokens.push_back( {keyword->second, line_count} ); 
         else // Is identifier
@@ -111,6 +119,56 @@ public:
       {
         consume();
         line_count++;
+      }
+
+      /* double char tokens */
+      else if (peek().value() == '<')
+      {
+        consume();
+        if (peek().has_value() && peek().value() == '=')
+        {
+          tokens.push_back( {TokenType::LTEQ, line_count} );
+          consume();
+        }
+        else
+          tokens.push_back( {TokenType::LT, line_count} );
+      }
+      else if (peek().value() == '>')
+      {
+        consume();
+        if (peek().has_value() && peek().value() == '=')
+        {
+          tokens.push_back( {TokenType::GTEQ, line_count} );
+          consume();
+        }
+        else
+          tokens.push_back( {TokenType::GT, line_count} );
+      }
+
+      else if (peek().value() == '!')
+      {
+        consume();
+        if (peek().has_value() && peek().value() == '=')
+        {
+          tokens.push_back( {TokenType::NOTEQ, line_count} );
+          consume();
+        }
+        else 
+        {
+          tokens.push_back( {TokenType::NOT, line_count} );
+          assert(false && "`Not` not implemented");
+        }
+      }
+      else if (peek().value() == '=')
+      {
+        consume();
+        if(peek().has_value() && peek().value() == '=')
+        {
+          tokens.push_back( {TokenType::DBEQ, line_count} );
+          consume();
+        }
+        else 
+          tokens.push_back( {TokenType::EQUALS, line_count} );
       }
 
       /* Look for single char tokens */

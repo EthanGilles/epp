@@ -2,135 +2,10 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
-#include <variant>
 #include "arena.hpp"
 #include "tokenization.hpp"
 #include "token-utils.cpp"
-
-
-struct NodeTermIntLit {
-  Token int_lit;
-};
-
-struct NodeTermID {
-  Token ID;
-};
-
-struct NodeExpr;
-
-struct NodeTermParenth {
-  NodeExpr *expr;
-};
-
-struct NodeStmtExit {
-  NodeExpr *expr;
-};
-
-struct NodeStmtPrint {
-  std::vector<NodeExpr*> args;
-};
-
-struct NodeBinExprAdd {
-  NodeExpr *lhs;
-  NodeExpr *rhs;
-};
-
-struct NodeBinExprMulti {
-  NodeExpr *lhs;
-  NodeExpr *rhs;
-};
-
-struct NodeBinExprSub {
-  NodeExpr *lhs;
-  NodeExpr *rhs;
-};
-
-struct NodeBinExprDiv {
-  NodeExpr *lhs;
-  NodeExpr *rhs;
-};
-
-struct NodeBinExprMod {
-  NodeExpr *lhs;
-  NodeExpr *rhs;
-};
-
-struct NodeBinExpr {
-  std::variant<
-  NodeBinExprAdd*, 
-  NodeBinExprMulti*, 
-  NodeBinExprSub*, 
-  NodeBinExprDiv*, 
-  NodeBinExprMod* 
-  > variant;
-};
-
-struct NodeTerm {
-  std::variant<NodeTermIntLit*, NodeTermID*, NodeTermParenth* > variant;
-};
-
-struct NodeExpr {
-  std::variant<NodeTerm*, NodeBinExpr*> variant;
-};
-
-struct NodeStmtSet {
-  Token ID;
-  NodeExpr* expr;
-};
-
-struct NodeStmt;
-
-struct NodeScope {
-  std::vector<NodeStmt*> stmts;
-};
-
-struct NodeIfPred;
-
-struct NodeIfPredElsif {
-  NodeExpr* expr;
-  NodeScope* scope;
-  std::optional<NodeIfPred*> predicate;
-};
-
-struct NodeIfPredElse {
-  NodeScope* scope;
-};
-
-struct NodeIfPred {
-  std::variant<NodeIfPredElse*, NodeIfPredElsif*> variant;
-};
-
-struct NodeStmtIf {
-  NodeExpr* expr;
-  NodeScope* scope;
-  std::optional<NodeIfPred*> predicate;
-};
-
-struct NodeStmtPlease {
-  size_t value;
-};
-
-struct NodeStmtReset {
-  Token ID;
-  NodeExpr *expr;
-};
-
-struct NodeStmt {
-  std::variant<
-  NodeStmtExit*, 
-  NodeStmtSet*, 
-  NodeStmtPrint*, 
-  NodeScope*, 
-  NodeStmtIf*, 
-  NodeStmtPlease*, 
-  NodeStmtReset* > 
-  variant;
-};
-
-struct NodeProgram {
-  std::vector<NodeStmt*> stmts;
-};
-
+#include "node-defs.hpp"
 
 class Parser
 {
@@ -139,7 +14,7 @@ public:
     : m_tokens(std::move(tokens))
     , m_allocator(1024 * 1024 * 4)  {} // 4MB 
 
-
+  /* TERM -> ID | INT_LIT | (EXPR) */
   std::optional<NodeTerm*> parse_term()
   {
     if (auto int_lit = try_consume(TokenType::INT_LIT))
@@ -173,7 +48,7 @@ public:
       return {};
   }
 
-  std::optional<NodeExpr*> parse_expr(int min_precedence = 0)
+  std::optional<NodeExpr*> parse_expr(int min_precedence = 0, bool has_cmp = false)
   {
     std::optional<NodeTerm*> term_lhs = parse_term();
     if(!term_lhs.has_value())
@@ -197,7 +72,7 @@ public:
 
       Token op = consume();
       int next_min_precedence = precedence.value() + 1;
-      auto expr_rhs = parse_expr(next_min_precedence);
+      auto expr_rhs = parse_expr(next_min_precedence, has_cmp);
       if (!expr_rhs.has_value())
         error_expected("Expression following an operator");
 
@@ -235,10 +110,62 @@ public:
           expr->variant = mod;
           break;
         }
-        default: {
-          std::cerr << "Invalid operator" << std::endl;
-          exit(EXIT_FAILURE);
+        case TokenType::LT: {
+          if (has_cmp)
+            error_invalid("expression. More than one comparison operator");
+          expr_lhs2->variant = expr_lhs->variant;
+          auto lt = m_allocator.emplace<NodeBinCmpLT>(expr_lhs2, expr_rhs.value());
+          expr->variant = lt;
+          has_cmp = true;
+          break;
         }
+        case TokenType::GT: {
+          if (has_cmp)
+            error_invalid("expression. More than one comparison operator");
+          expr_lhs2->variant = expr_lhs->variant;
+          auto gt = m_allocator.emplace<NodeBinCmpGT>(expr_lhs2, expr_rhs.value());
+          expr->variant = gt;
+          has_cmp = true;
+          break;
+        }
+        case TokenType::LTEQ: {
+          if (has_cmp)
+            error_invalid("expression. More than one comparison operator");
+          expr_lhs2->variant = expr_lhs->variant;
+          auto lte = m_allocator.emplace<NodeBinCmpLTEQ>(expr_lhs2, expr_rhs.value());
+          expr->variant = lte;
+          has_cmp = true;
+          break;
+        }
+        case TokenType::GTEQ: {
+          if (has_cmp)
+            error_invalid("expression. More than one comparison operator");
+          expr_lhs2->variant = expr_lhs->variant;
+          auto gte = m_allocator.emplace<NodeBinCmpGTEQ>(expr_lhs2, expr_rhs.value());
+          expr->variant = gte;
+          has_cmp = true;
+          break;
+        }
+        case TokenType::NOTEQ: {
+          if (has_cmp)
+            error_invalid("expression. More than one comparison operator");
+          expr_lhs2->variant = expr_lhs->variant;
+          auto noteq = m_allocator.emplace<NodeBinCmpNOTEQ>(expr_lhs2, expr_rhs.value());
+          expr->variant = noteq;
+          has_cmp = true;
+          break;
+        }
+        case TokenType::DBEQ: {
+          if (has_cmp)
+            error_invalid("expression. More than one comparison operator");
+          expr_lhs2->variant = expr_lhs->variant;
+          auto dbeq = m_allocator.emplace<NodeBinCmpDBEQ>(expr_lhs2, expr_rhs.value());
+          expr->variant = dbeq;
+          has_cmp = true;
+          break;
+        }
+        default: 
+          error_invalid("operator: " + to_string(op.type));
       }
       expr_lhs->variant = expr;
     }
@@ -321,14 +248,9 @@ public:
       auto stmt_exit = m_allocator.alloc<NodeStmtExit>();
 
       if (auto node_expr = parse_expr())
-      {
         stmt_exit->expr = node_expr.value();
-      }
       else
-      {
-        std::cerr << "Invalid expression" << std::endl;
-        exit (EXIT_FAILURE);
-      }
+        error_invalid("expression");
 
       try_consume_err(TokenType::RPAREN);
       try_consume_err(TokenType::SEMI);
@@ -380,10 +302,7 @@ public:
       if (auto expr = parse_expr())
         stmt_set->expr = expr.value();
       else
-      {
-        std::cerr << "Invalid expression" << std::endl;
-        exit (EXIT_FAILURE);
-      }
+        error_invalid("expression");
 
       try_consume_err(TokenType::SEMI);
 
@@ -403,10 +322,8 @@ public:
 
       if(const auto expr = parse_expr()) 
         reset->expr = expr.value();
-      else {
-        std::cerr << "Invalid expression" << std::endl;
-        exit (EXIT_FAILURE);
-      }
+      else 
+        error_invalid("expression");
 
       try_consume_err(TokenType::SEMI);
       auto stmt = m_allocator.emplace<NodeStmt>(reset);
@@ -421,10 +338,7 @@ public:
         return stmt;
       }
       else
-      {
-        std::cerr << "Invalid scope" << std::endl;
-        exit(EXIT_FAILURE);
-      }
+        error_invalid("scope");
     }
     /* PARSE -> IF ( EXPR ) { STMT } */
     else if (auto if_ = try_consume(TokenType::IF)) 
@@ -435,20 +349,15 @@ public:
       if(const auto expr = parse_expr())
         if_stmt->expr = expr.value();
       else
-      {
-        std::cerr << "Invalid expression" << std::endl;
-        exit (EXIT_FAILURE);
-      }
+        error_invalid("expression");
 
       try_consume_err(TokenType::RPAREN);
 
       if (const auto scope = parse_scope())
         if_stmt->scope = scope.value();
       else
-      {
-        std::cerr << "Invalid scope" << std::endl;
-        exit(EXIT_FAILURE);
-      }
+        error_invalid("scope");
+
       if_stmt->predicate = parse_if_predicate();
 
       auto stmt = m_allocator.emplace<NodeStmt>(if_stmt);
@@ -465,10 +374,7 @@ public:
       if (auto stmt = parse_stmt())
         program.stmts.push_back(stmt.value());
       else
-      {
-        std::cerr << "Invalid statement" << std::endl;
-        exit(EXIT_FAILURE);
-      }
+        error_invalid("statement");
     }
     return program;
   }
@@ -492,7 +398,8 @@ private:
   {
     if(peek().has_value() && peek().value().type == type)
       return consume();
-    error_expected(to_string(type));
+    std::string msg = to_string(type) + " but found " + to_string(peek().value().type);
+    error_expected(msg);
     return {};
   }
 
@@ -506,6 +413,12 @@ private:
   void error_expected(const std::string &msg)
   {
     std::cerr << "[Parser Error] Expected " << msg << " on line " << peek(-1).value().line << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  void error_invalid(const std::string &msg)
+  {
+    std::cerr << "[Parser Error] Invalid " << msg << " on line " << peek(-1).value().line << std::endl;
     exit(EXIT_FAILURE);
   }
 

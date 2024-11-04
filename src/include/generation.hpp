@@ -1,4 +1,5 @@
 #pragma once 
+#include "node-defs.hpp"
 #include "parser.hpp"
 #include <algorithm>
 #include <cstdio>
@@ -100,6 +101,72 @@ public:
         gen.pop("rbx");
         gen.m_output << "    sub rax, rbx\n";
         gen.push("rax");
+      }
+      void operator()(const NodeBinCmpGT *gt) const
+      {
+        gen.gen_expr(gt->rhs);
+        gen.gen_expr(gt->lhs);
+        gen.pop("rax");
+        gen.pop("rbx");
+        gen.m_output << "    xor rcx, rcx\n";
+        gen.m_output << "    cmp rax, rbx\n";
+        gen.m_output << "    setg cl\n";
+        gen.push("rcx");
+      }
+      void operator()(const NodeBinCmpLT *lt) const
+      {
+        gen.gen_expr(lt->rhs);
+        gen.gen_expr(lt->lhs);
+        gen.pop("rax");
+        gen.pop("rbx");
+        gen.m_output << "    xor rcx, rcx\n";
+        gen.m_output << "    cmp rax, rbx\n";
+        gen.m_output << "    setl cl\n";
+        gen.push("rcx");
+      }
+      void operator()(const NodeBinCmpGTEQ *gteq) const
+      {
+        gen.gen_expr(gteq->rhs);
+        gen.gen_expr(gteq->lhs);
+        gen.pop("rax");
+        gen.pop("rbx");
+        gen.m_output << "    xor rcx, rcx\n";
+        gen.m_output << "    cmp rax, rbx\n";
+        gen.m_output << "    setge cl\n";
+        gen.push("rcx");
+      }
+      void operator()(const NodeBinCmpLTEQ *lteq) const
+      {
+        gen.gen_expr(lteq->rhs);
+        gen.gen_expr(lteq->lhs);
+        gen.pop("rax");
+        gen.pop("rbx");
+        gen.m_output << "    xor rcx, rcx\n";
+        gen.m_output << "    cmp rax, rbx\n";
+        gen.m_output << "    setle cl\n";
+        gen.push("rcx");
+      }
+      void operator()(const NodeBinCmpNOTEQ *noteq) const
+      {
+        gen.gen_expr(noteq->rhs);
+        gen.gen_expr(noteq->lhs);
+        gen.pop("rax");
+        gen.pop("rbx");
+        gen.m_output << "    xor rcx, rcx\n";
+        gen.m_output << "    cmp rax, rbx\n";
+        gen.m_output << "    setne cl\n";
+        gen.push("rcx");
+      }
+      void operator()(const NodeBinCmpDBEQ *dbeq) const
+      {
+        gen.gen_expr(dbeq->rhs);
+        gen.gen_expr(dbeq->lhs);
+        gen.pop("rax");
+        gen.pop("rbx");
+        gen.m_output << "    xor rcx, rcx\n";
+        gen.m_output << "    cmp rax, rbx\n";
+        gen.m_output << "    sete cl\n"; 
+        gen.push("rcx");
       }
     };
 

@@ -192,8 +192,8 @@ CMakeFiles/please.dir/src/main.cpp.o: /home/exan/cpp/epp/src/main.cpp \
  /usr/include/c++/11/bits/hashtable_policy.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/unordered_map.h \
- /usr/include/c++/11/bits/erase_if.h \
- /home/exan/cpp/epp/src/include/parser.hpp /usr/include/c++/11/variant \
+ /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/cassert \
+ /usr/include/assert.h /home/exan/cpp/epp/src/include/parser.hpp \
  /home/exan/cpp/epp/src/include/arena.hpp /usr/include/c++/11/cstddef \
  /usr/include/c++/11/memory \
  /usr/include/c++/11/bits/stl_raw_storage_iter.h \
@@ -230,9 +230,9 @@ CMakeFiles/please.dir/src/main.cpp.o: /home/exan/cpp/epp/src/main.cpp \
  /usr/include/c++/11/pstl/glue_memory_defs.h \
  /usr/include/c++/11/pstl/execution_defs.h \
  /home/exan/cpp/epp/src/include/token-utils.cpp \
+ /home/exan/cpp/epp/src/include/node-defs.hpp /usr/include/c++/11/variant \
  /home/exan/cpp/epp/src/include/generation.hpp \
  /usr/include/c++/11/algorithm /usr/include/c++/11/bits/ranges_algo.h \
  /usr/include/c++/11/bits/ranges_util.h \
  /usr/include/c++/11/pstl/glue_algorithm_defs.h \
- /usr/include/c++/11/functional /usr/include/c++/11/bits/std_function.h \
- /usr/include/c++/11/cassert /usr/include/assert.h
+ /usr/include/c++/11/functional /usr/include/c++/11/bits/std_function.h

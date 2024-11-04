@@ -1,7 +1,6 @@
 #pragma once
 #include "tokenization.hpp"
 
-
 std::string to_string(const TokenType type)
 {
   /* Returns a literal string representation of the token */
@@ -53,8 +52,35 @@ std::string to_string(const TokenType type)
       return "`(`";
     case TokenType::RPAREN:
       return "`)`";
+    case TokenType::GT:
+      return "`>`";
+    case TokenType::LT:
+      return "`<`";
+    case TokenType::GTEQ:
+      return "`>=`";
+    case TokenType::LTEQ:
+      return "`<=`";
+    case TokenType::NOTEQ:
+      return "`!=`";
+    case TokenType::DBEQ:
+      return "`==`";
     default:
       return "unknown";
+  }
+}
+
+bool is_bin_cmp(TokenType type)
+{
+  switch(type) {
+    case TokenType::GT:
+    case TokenType::LT:
+    case TokenType::GTEQ:
+    case TokenType::LTEQ:
+    case TokenType::NOTEQ:
+    case TokenType::DBEQ:
+      return true;
+    default:
+      return false;
   }
 }
 
@@ -67,6 +93,12 @@ bool is_bin_op(TokenType type)
     case TokenType::MINUS:
     case TokenType::FSLASH:
     case TokenType::PERCENT:
+    case TokenType::GT:
+    case TokenType::LT:
+    case TokenType::GTEQ:
+    case TokenType::LTEQ:
+    case TokenType::NOTEQ:
+    case TokenType::DBEQ:
       return true;
     default:
       return false;
@@ -74,20 +106,28 @@ bool is_bin_op(TokenType type)
 }
 
 /* Returns precedence of a binary operator 
- * multiplication = 1
- * division       = 1
- * modulo         = 1
- * addition       = 0 
- * subtraction    = 0               */
+ * multiplication = 2
+ * division       = 2
+ * modulo         = 2
+ * addition       = 1
+ * subtraction    = 1
+ * comparison     = 1      */
 std::optional<int> bin_prec(TokenType type)
 {
   switch(type) {
     case TokenType::STAR:
     case TokenType::FSLASH:
     case TokenType::PERCENT:
-      return 1;
+      return 2;
     case TokenType::PLUS:
     case TokenType::MINUS:
+      return 1;
+    case TokenType::GT:
+    case TokenType::LT:
+    case TokenType::GTEQ:
+    case TokenType::LTEQ:
+    case TokenType::NOTEQ:
+    case TokenType::DBEQ:
       return 0;
     default:
       return {};

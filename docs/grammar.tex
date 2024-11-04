@@ -197,20 +197,35 @@ and syntax for the language, E++. \\
   [\text{Term}] \\ 
   [\text{BinaryExpr}] \\
   \end{cases} \\
-  [\text{BinaryExpr}] &\to 
-  \begin{cases}
-    [\text{Expr}] \times [\text{Expr}] & precedence = 1 \\
-    [\text{Expr}] \div [\text{Expr}] & precedence = 1\\
-    [\text{Expr}] \,\%\, [\text{Expr}] & precedence = 1\\
-    [\text{Expr}] + [\text{Expr}] & precedence = 0\\
-    [\text{Expr}] - [\text{Expr}] & precedence = 0\\
-  \end{cases} \\
   [\text{Term}] &\to
   \begin{cases}
     \text{int\_lit} \\ 
     \text{ID} \\ 
     \left([\text{Expr}]\right)
   \end{cases} \\
+\end{align*}
+
+\begin{align*}
+  [\text{BinaryExpr}] &\to 
+  \begin{cases}
+    [\text{Expr}] \times [\text{Expr}] & precedence = 2 \\
+    [\text{Expr}] \div [\text{Expr}] & precedence = 2 \\
+    [\text{Expr}] \,\%\, [\text{Expr}] & precedence = 2 \\
+    [\text{Expr}] + [\text{Expr}] & precedence = 1 \\
+    [\text{Expr}] - [\text{Expr}] & precedence = 1 \\
+    [Expr] \le  [Expr] & precedence = 0 \\
+    [Expr] \ge  [Expr] & precedence = 0 \\
+    [Expr] >  [Expr] & precedence = 0 \\
+    [Expr] <  [Expr] & precedence = 0 \\
+    [Expr] ==  [Expr] & precedence = 0 \\
+    [Expr] \; ! \!=  [Expr] & precedence = 0 \\
+  \end{cases} \\
+\end{align*}
+
+\textbf{Terminals}
+\begin{align*}
+  \text{int\_lit} &\to \text{[0-9]}^* \\
+  \text{ID} &\to \text{[a-zA-Z][a-zA-Z0-9]}^* \\
 \end{align*}
 
 \end{document}

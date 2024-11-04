@@ -247,8 +247,9 @@ CMakeFiles/please.dir/src/main.cpp.o: ../src/main.cpp \
   /usr/include/c++/11/bits/node_handle.h \
   /usr/include/c++/11/bits/unordered_map.h \
   /usr/include/c++/11/bits/erase_if.h \
+  /usr/include/c++/11/cassert \
+  /usr/include/assert.h \
   ../src/include/parser.hpp \
-  /usr/include/c++/11/variant \
   ../src/include/arena.hpp \
   /usr/include/c++/11/cstddef \
   /usr/include/c++/11/memory \
@@ -292,24 +293,24 @@ CMakeFiles/please.dir/src/main.cpp.o: ../src/main.cpp \
   /usr/include/c++/11/pstl/glue_memory_defs.h \
   /usr/include/c++/11/pstl/execution_defs.h \
   ../src/include/token-utils.cpp \
+  ../src/include/node-defs.hpp \
+  /usr/include/c++/11/variant \
   ../src/include/generation.hpp \
   /usr/include/c++/11/algorithm \
   /usr/include/c++/11/bits/ranges_algo.h \
   /usr/include/c++/11/bits/ranges_util.h \
   /usr/include/c++/11/pstl/glue_algorithm_defs.h \
   /usr/include/c++/11/functional \
-  /usr/include/c++/11/bits/std_function.h \
-  /usr/include/c++/11/cassert \
-  /usr/include/assert.h
+  /usr/include/c++/11/bits/std_function.h
 
-
-/usr/include/c++/11/cassert:
 
 /usr/include/c++/11/bits/ranges_util.h:
 
 /usr/include/c++/11/algorithm:
 
 ../src/include/generation.hpp:
+
+/usr/include/c++/11/variant:
 
 /usr/include/c++/11/pstl/glue_memory_defs.h:
 
@@ -350,6 +351,8 @@ CMakeFiles/please.dir/src/main.cpp.o: ../src/main.cpp \
 /usr/lib/gcc/x86_64-linux-gnu/11/include/limits.h:
 
 /usr/include/c++/11/bits/atomic_wait.h:
+
+/usr/include/c++/11/bits/atomic_lockfree_defines.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
 
@@ -414,10 +417,6 @@ CMakeFiles/please.dir/src/main.cpp.o: ../src/main.cpp \
 /usr/include/c++/11/bits/move.h:
 
 /usr/include/c++/11/bits/hash_bytes.h:
-
-/usr/include/assert.h:
-
-/usr/include/c++/11/numbers:
 
 /usr/include/c++/11/bits/string_view.tcc:
 
@@ -585,6 +584,10 @@ CMakeFiles/please.dir/src/main.cpp.o: ../src/main.cpp \
 
 /usr/include/c++/11/bits/stl_iterator_base_types.h:
 
+/usr/include/c++/11/numbers:
+
+/usr/include/assert.h:
+
 /usr/include/c++/11/bit:
 
 /usr/include/c++/11/bits/ranges_algo.h:
@@ -697,6 +700,8 @@ CMakeFiles/please.dir/src/main.cpp.o: ../src/main.cpp \
 
 /usr/include/c++/11/bits/stl_algo.h:
 
+/usr/include/c++/11/cassert:
+
 /usr/include/c++/11/pstl/execution_defs.h:
 
 /usr/include/c++/11/bits/algorithmfwd.h:
@@ -785,11 +790,11 @@ CMakeFiles/please.dir/src/main.cpp.o: ../src/main.cpp \
 
 /usr/include/c++/11/bits/streambuf.tcc:
 
-/usr/include/c++/11/bits/atomic_lockfree_defines.h:
-
 /usr/include/c++/11/bits/uniform_int_dist.h:
 
 /usr/include/c++/11/bits/basic_ios.h:
+
+../src/include/node-defs.hpp:
 
 /usr/include/c++/11/bits/exception.h:
 
@@ -894,8 +899,6 @@ CMakeFiles/please.dir/src/main.cpp.o: ../src/main.cpp \
 /usr/include/endian.h:
 
 /usr/include/c++/11/bits/erase_if.h:
-
-/usr/include/c++/11/variant:
 
 ../src/include/arena.hpp:
 
