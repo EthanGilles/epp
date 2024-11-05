@@ -2,7 +2,7 @@
 
 ### COS360: Final Project
 
-**Author:** Ethan H. Gilles  
+**Author:** Ethan Gilles  
 **University:** University of Southern Maine  
 **Course:** COS360 - Programming Languages  
 

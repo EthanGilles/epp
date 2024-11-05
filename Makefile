@@ -26,5 +26,8 @@ install-test:
 	please examples/hello.epp -o hello
 	./hello
 
-count-lines:
+lines-project:
 	./build/count-lines.sh src/main.cpp src/include/*
+
+lines-assembly:
+	./build/count-lines.sh out.asm

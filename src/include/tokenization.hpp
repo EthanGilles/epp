@@ -72,10 +72,15 @@ public:
           buffer.push_back(consume());
 
         auto keyword = keywordMap.find(buffer);
-        if (keyword != keywordMap.end()) // Is a keyword
+        if (keyword != keywordMap.end()) 
+        {
+          if(buffer == "space") 
+            tokens.push_back( {TokenType::INT_LIT, line_count, "32"} );
+          else
             tokens.push_back( {keyword->second, line_count} ); 
+        }
         else // Is identifier
-            tokens.push_back( {TokenType::ID, line_count, buffer} );
+          tokens.push_back( {TokenType::ID, line_count, buffer} );
 
         buffer.clear();
       }
@@ -237,6 +242,7 @@ private:
       {"else", TokenType::ELSE},
       {"please", TokenType::PLEASE},
       {"PLEASE", TokenType::PLEASE_C},
+      {"space", TokenType::INT_LIT},
   };
 
   const std::string m_src;

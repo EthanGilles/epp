@@ -1,12 +1,15 @@
 set x = 0;
+set A to 65;
 
 PLEASE while (x < 26) {
-  print(65 + x, 32); // 65 = A
+  print(A + x, space); // 65 = A
   please reset x = x + 1;
 }
 
-if (x == 26) {
-  printn();
+set Z to 26;
+
+if (x == Z) {
+  please printn();
   goodbye(0); // We should be at 'Z'!
 }
 else {
