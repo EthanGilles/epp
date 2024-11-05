@@ -150,6 +150,11 @@ struct NodeStmtIf {
   std::optional<NodeIfPred*> predicate;
 };
 
+struct NodeStmtWhile {
+  NodeExpr* expr;
+  NodeScope* scope;
+};
+
 struct NodeStmtPlease {
   size_t value;
 };
@@ -167,6 +172,7 @@ struct NodeStmt {
   NodeStmtPrint*, 
   NodeScope*, 
   NodeStmtIf*, 
+  NodeStmtWhile*, 
   NodeStmtPlease*, 
   NodeStmtReset* > 
   variant;

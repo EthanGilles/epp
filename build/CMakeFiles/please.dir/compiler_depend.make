@@ -293,7 +293,7 @@ CMakeFiles/please.dir/src/main.cpp.o: ../src/main.cpp \
   /usr/include/c++/11/pstl/glue_memory_defs.h \
   /usr/include/c++/11/pstl/execution_defs.h \
   ../src/include/token-utils.cpp \
-  ../src/include/node-defs.hpp \
+  ../src/include/grammar.hpp \
   /usr/include/c++/11/variant \
   ../src/include/generation.hpp \
   /usr/include/c++/11/algorithm \
@@ -311,6 +311,8 @@ CMakeFiles/please.dir/src/main.cpp.o: ../src/main.cpp \
 ../src/include/generation.hpp:
 
 /usr/include/c++/11/variant:
+
+../src/include/grammar.hpp:
 
 /usr/include/c++/11/pstl/glue_memory_defs.h:
 
@@ -793,8 +795,6 @@ CMakeFiles/please.dir/src/main.cpp.o: ../src/main.cpp \
 /usr/include/c++/11/bits/uniform_int_dist.h:
 
 /usr/include/c++/11/bits/basic_ios.h:
-
-../src/include/node-defs.hpp:
 
 /usr/include/c++/11/bits/exception.h:
 

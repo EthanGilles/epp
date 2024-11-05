@@ -1,18 +1,13 @@
-please set x = (10 - 2 * 3) / 2;
-set y to 1;
-set z = 0;
+set x = 0;
 
-// This is a comment
-/* also a comment */
+PLEASE while (x < 26) {
+  print(65 + x, 32); // 65 = A
+  please reset x = x + 1;
+}
 
-PLEASE if (z) {
-  reset z = 15+2;
+if (x == 26) {
+  goodbye(0); // We should be at 'Z'!
 }
 else {
-  reset x = 20;
+  goodbye(1);
 }
-
-please print(65, 66, 67, 10);
-print(65, 66, 67, 10);
-
-goodbye(0);

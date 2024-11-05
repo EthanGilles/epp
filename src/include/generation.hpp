@@ -1,5 +1,5 @@
 #pragma once 
-#include "node-defs.hpp"
+#include "grammar.hpp"
 #include "parser.hpp"
 #include <algorithm>
 #include <cstdio>
@@ -324,6 +324,25 @@ public:
 
         gen.m_output << "    ;; /if\n";
       }
+      void operator()(const NodeStmtWhile *stmt_while)
+      {
+        gen.m_output << "    ;; /while\n";
+
+        const std::string start = gen.create_label();
+        const std::string end = gen.create_label();
+
+        gen.m_output << start << ":\n";
+        //loop
+        gen.gen_expr(stmt_while->expr);
+        gen.pop("rax");
+        gen.m_output << "    test rax, rax\n";
+        gen.m_output << "    jz " << end << "\n";
+        gen.gen_scope(stmt_while->scope);
+        gen.m_output << "    jmp " << start << "\n";
+        // end 
+        gen.m_output << end << ":\n";
+        gen.m_output << "    ;; /while\n";
+      }
       /* GENERATE -> please or PLEASE */
       void operator()(const NodeStmtPlease* stmt_pls) 
       {
@@ -373,7 +392,7 @@ public:
   void polite_msg(const std::string &msg) 
   {
     m_output.str("");
-    m_output << "section .data\n    msg db \"" << msg << "\"\n";
+    m_output << "section .data\n    msg db \"" << msg << "\", 0xA\n";
     m_output << "    msg_len equ $ - msg\n    ;; /set msg and length\n\n";
     m_output << "section .text\n    global _start\n\n_start:\n";
     m_output << "    mov rax, 1\n";

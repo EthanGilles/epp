@@ -5,7 +5,7 @@
 #include "arena.hpp"
 #include "tokenization.hpp"
 #include "token-utils.cpp"
-#include "node-defs.hpp"
+#include "grammar.hpp"
 
 class Parser
 {
@@ -223,6 +223,7 @@ public:
 
   std::optional<NodeStmt*> parse_stmt()
   {
+
     /* PARSE -> 'please' or 'PLEASE' */
     if( (peek().has_value() && peek().value().type == TokenType::PLEASE) || 
         (peek().has_value() && peek().value().type == TokenType::PLEASE_C) )
@@ -238,6 +239,8 @@ public:
       auto stmt = m_allocator.emplace<NodeStmt>(please);
       return stmt;
     }
+
+
     /* PARSE -> EXIT */
     else if (peek().has_value() && peek().value().type == TokenType::GOODBYE && 
         peek(1).has_value() && peek(1).value().type == TokenType::LPAREN)
@@ -259,6 +262,8 @@ public:
       stmt->variant = stmt_exit;
       return stmt;
     }
+
+
     /* PARSE -> PRINT (EXPR, EXPR, ...) */
     else if (peek().has_value() && peek().value().type == TokenType::PRINT && 
         peek(1).has_value() && peek(1).value().type == TokenType::LPAREN)
@@ -289,6 +294,44 @@ public:
       auto stmt = m_allocator.emplace<NodeStmt>(print_stmt);
       return stmt;
     }
+
+    /* PARSE -> PRINTN() */
+    else if (peek().has_value() && peek().value().type == TokenType::PRINTNL && 
+        peek(1).has_value() && peek(1).value().type == TokenType::LPAREN)
+    {
+      consume(); /* Consume PRINTN */
+      consume(); /* Consume LPAREN */
+      std::vector<NodeExpr*> args;
+
+      while (true)
+      {
+        if(auto expr = parse_expr())
+          args.push_back(expr.value());
+        // OK to be empty.
+
+        if(peek().has_value() && peek().value().type == TokenType::COMMA)
+          consume();
+        else if (peek().has_value() && peek().value().type == TokenType::RPAREN)
+        {
+          consume();
+          break;
+        }
+      }
+
+      /* add a newline character at the end */
+      Token int_lit = {TokenType::INT_LIT, peek(-1).value().line, "10"};
+      auto lit = m_allocator.emplace<NodeTermIntLit>(int_lit);
+      auto term = m_allocator.emplace<NodeTerm>(lit);
+      auto expr = m_allocator.emplace<NodeExpr>(term);
+      args.push_back(expr);
+
+      try_consume_err(TokenType::SEMI);
+      auto print_stmt = m_allocator.emplace<NodeStmtPrint>();
+      print_stmt->args = args;
+      auto stmt = m_allocator.emplace<NodeStmt>(print_stmt);
+      return stmt;
+    }
+
     /* PARSE -> SET ID = EXPR */
     else if (peek().has_value() && peek().value().type == TokenType::SET  /* SET */
     && peek(1).has_value() && peek(1).value().type == TokenType::ID       /* ID  */
@@ -310,6 +353,8 @@ public:
       stmt->variant = stmt_set;
       return stmt;
     }
+
+
     /* PARSE -> RESET ID = [EXPR] */
     else if(peek().has_value() && peek().value().type == TokenType::RESET && 
             peek(1).has_value() && peek(1).value().type == TokenType::ID && 
@@ -329,6 +374,8 @@ public:
       auto stmt = m_allocator.emplace<NodeStmt>(reset);
       return stmt;
     }
+
+
     /* PARSE -> SCOPE */
     else if (peek().has_value() && peek().value().type == TokenType::LCURLY)
     {
@@ -340,6 +387,31 @@ public:
       else
         error_invalid("scope");
     }
+
+
+    /* PARSE -> WHILE (EXPR) { STMT } */
+    else if (auto while_ = try_consume(TokenType::WHILE))
+    {
+      try_consume_err(TokenType::LPAREN); 
+
+      auto while_stmt = m_allocator.emplace<NodeStmtWhile>();
+      if(const auto expr = parse_expr())
+        while_stmt->expr = expr.value();
+      else
+        error_invalid("expression");
+
+      try_consume_err(TokenType::RPAREN);
+
+      if (const auto scope = parse_scope())
+        while_stmt->scope = scope.value();
+      else
+        error_invalid("scope");
+
+      auto stmt = m_allocator.emplace<NodeStmt>(while_stmt);
+      return stmt;
+    }
+
+
     /* PARSE -> IF ( EXPR ) { STMT } */
     else if (auto if_ = try_consume(TokenType::IF)) 
     {

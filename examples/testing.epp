@@ -1,18 +1,14 @@
-please set x = 27 % 10 != 6;
-please set z = 3;
+set x = 0;
 
-if (0) {
-  print(65, 10); // A
+PLEASE while (x < 26) {
+  print(65 + x, 32); // 65 = A
+  please reset x = x + 1;
+}
+
+if (x == 26) {
+  printn();
+  goodbye(0); // We should be at 'Z'!
 }
 else {
-  please print(66, 10); // B
-} 
-
-if (x) {
-  print(65, 10);
+  goodbye(1);
 }
-else {
-  please print(66, 10);
-}
-
-goodbye(0);
