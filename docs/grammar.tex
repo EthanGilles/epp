@@ -204,7 +204,8 @@ and syntax for the language, E++. \\
   \begin{cases}
     \text{int\_lit} \\ 
     \text{ID} \\ 
-    \left([\text{Expr}]\right)
+    \left([\text{Expr}]\right) \\
+    \text{'char'} 
   \end{cases} \\
 \end{align*}
 
@@ -228,6 +229,7 @@ and syntax for the language, E++. \\
 \textbf{Terminals}
 \begin{align*}
   \text{int\_lit} &\to \text{[0-9]}^* \\
+  \text{char} &\to \text{(int)[0-9a-zA-Z]} \\
   \text{ID} &\to \text{[a-zA-Z][a-zA-Z0-9]}^* \\
 \end{align*}
 

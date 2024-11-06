@@ -1,6 +1,7 @@
 #pragma once 
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <vector>
 #include "arena.hpp"
 #include "tokenization.hpp"
@@ -42,6 +43,14 @@ public:
       auto term_parenth = m_allocator.emplace<NodeTermParenth>(expr.value());
 
       auto term = m_allocator.emplace<NodeTerm>(term_parenth);
+      return term;
+    }
+    else if (auto character = try_consume(TokenType::CHAR))
+    {
+      int value = static_cast<int>(character.value().value.value()[0]);
+      character.value().value = std::to_string(value);
+      auto term_int_lit = m_allocator.emplace<NodeTermIntLit>(character.value());
+      auto term = m_allocator.emplace<NodeTerm>(term_int_lit);
       return term;
     }
     else 

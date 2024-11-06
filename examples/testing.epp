@@ -1,15 +1,15 @@
-set x = 0;
-set A to 65;
+set x = 0; 
 
 PLEASE while (x < 26) {
-  print(A + x, space); // 65 = A
+  print('A' + x, space); // 65 = A
   please reset x = x + 1;
 }
 
 set Z to 26;
+printn();
 
 if (x == Z) {
-  please printn();
+  please printn('A', 'B', 'C', 's', '!');
   goodbye(0); // We should be at 'Z'!
 }
 else {

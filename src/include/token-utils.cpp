@@ -65,7 +65,7 @@ std::string to_string(const TokenType type)
     case TokenType::DBEQ:
       return "`==`";
     default:
-      return "unknown";
+      return "Token to_string not implemented";
   }
 }
 

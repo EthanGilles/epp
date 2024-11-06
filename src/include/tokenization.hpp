@@ -21,7 +21,9 @@ enum class TokenType {
   PLEASE_C, // 'PLEASE'
   ID, // 'x'
   INT_LIT, // '59'
+  CHAR, // ''A''
   SEMI, // ';'
+  QUOTE, // '''
   LPAREN, // '('
   RPAREN, // ')'
   LCURLY, // '{'
@@ -76,6 +78,12 @@ public:
         {
           if(buffer == "space") 
             tokens.push_back( {TokenType::INT_LIT, line_count, "32"} );
+          else if (buffer == "newline")
+              tokens.push_back( {TokenType::INT_LIT, line_count, "10"} );
+          else if (buffer == "true")
+              tokens.push_back( {TokenType::INT_LIT, line_count, "1"} );
+          else if (buffer == "false")
+              tokens.push_back( {TokenType::INT_LIT, line_count, "0"} );
           else
             tokens.push_back( {keyword->second, line_count} ); 
         }
@@ -177,6 +185,20 @@ public:
         else 
           tokens.push_back( {TokenType::EQUALS, line_count} );
       }
+      else if (peek().value() == '\'')
+      {
+        consume();
+        buffer.push_back(consume());
+        if(peek().has_value() && peek().value() == '\'')
+          consume();
+        else
+        {
+          std::cerr << "[Tokenizer Error] expected closing quote for character" << std::endl;;
+          exit(EXIT_FAILURE);
+        }
+        tokens.push_back( {TokenType::CHAR, line_count, buffer} );
+        buffer.clear();
+      }
 
       /* Look for single char tokens */
       else if (tokenMap.find(peek().value()) != tokenMap.end()) 
@@ -192,7 +214,7 @@ public:
 
       else
       {
-          std::cerr << "Invalid token." << std::endl;
+          std::cerr << "[Tokenizer Error] Invalid token." << std::endl;
           exit(EXIT_FAILURE);
       }
     }
@@ -226,7 +248,8 @@ private:
     {'-', TokenType::MINUS},
     {'/', TokenType::FSLASH},
     {'%', TokenType::PERCENT},
-    {',', TokenType::COMMA}
+    {',', TokenType::COMMA},
+    {'\'', TokenType::QUOTE}
   };
 
   std::unordered_map<std::string, TokenType> keywordMap = {
@@ -243,6 +266,9 @@ private:
       {"please", TokenType::PLEASE},
       {"PLEASE", TokenType::PLEASE_C},
       {"space", TokenType::INT_LIT},
+      {"newline", TokenType::INT_LIT},
+      {"true", TokenType::INT_LIT},
+      {"false", TokenType::INT_LIT},
   };
 
   const std::string m_src;
