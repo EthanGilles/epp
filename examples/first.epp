@@ -1,6 +1,6 @@
 /* Welcome to Epp! Try compiling the program below and see what happens. */
 
-set x to 65;
+set x to 'A';
 
 print(x);
 

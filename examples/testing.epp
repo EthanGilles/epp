@@ -1,17 +1,17 @@
 set x = 0; 
 
-PLEASE while (x < 26) {
-  print('A' + x, space); // 65 = A
-  please reset x = x + 1;
+while (x < 26) {
+  please print('A' + x, space); // 65 = A
+  reset x = x + 1;
 }
 
 set Z to 26;
 printn();
 
 if (x == Z) {
-  please printn(5*13, 'B', 'C', 's', '!');
-  goodbye(0); // We should be at 'Z'!
+  please printn('A', 'B', 'C', 's', '!');
+  please goodbye(0); // We should be at 'Z'!
 }
 else {
-  goodbye(1);
+  please goodbye(1);
 }

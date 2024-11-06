@@ -25,10 +25,8 @@ label0:
     ;; /print
     push QWORD [rsp + 0] ; Variable value
     mov rax, 65
-    ;; push-pop removed rax
     pop rbx
     add rax, rbx
-    ;; push-pop removed rax
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
@@ -36,7 +34,6 @@ label0:
     mov rsi, char
     syscall
     mov rax, 32
-    ;; push-pop removed rax
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
@@ -50,7 +47,6 @@ label0:
     pop rax
     pop rbx
     add rax, rbx
-    ;; push-pop removed rax
     mov [rsp + 0], rax
     add rsp, 0
     jmp label0
@@ -61,7 +57,6 @@ label1:
     push rax
     ;; /print
     mov rax, 10
-    ;; push-pop removed rax
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
@@ -81,13 +76,7 @@ label1:
     test rax, rax
     jz label2
     ;; /print
-    mov rax, 13
-    push rax
-    mov rax, 5
-    ;; push-pop removed rax
-    pop rbx
-    mul rbx
-    ;; push-pop removed rax
+    mov rax, 65
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
@@ -95,7 +84,6 @@ label1:
     mov rsi, char
     syscall
     mov rax, 66
-    ;; push-pop removed rax
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
@@ -103,7 +91,6 @@ label1:
     mov rsi, char
     syscall
     mov rax, 67
-    ;; push-pop removed rax
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
@@ -111,7 +98,6 @@ label1:
     mov rsi, char
     syscall
     mov rax, 115
-    ;; push-pop removed rax
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
@@ -119,7 +105,6 @@ label1:
     mov rsi, char
     syscall
     mov rax, 33
-    ;; push-pop removed rax
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
@@ -127,7 +112,6 @@ label1:
     mov rsi, char
     syscall
     mov rax, 10
-    ;; push-pop removed rax
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
