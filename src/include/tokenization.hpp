@@ -100,7 +100,7 @@ public:
         while (peek().has_value() && std::isdigit(peek().value()))
           buffer.push_back(consume());
 
-        tokens.push_back( {TokenType::INT_LIT, line_count, buffer} );
+        tokens.emplace_back(TokenType::INT_LIT, line_count, buffer);
         buffer.clear();
       }
 
@@ -142,22 +142,22 @@ public:
         consume();
         if (peek().has_value() && peek().value() == '=')
         {
-          tokens.push_back( {TokenType::LTEQ, line_count} );
+          tokens.emplace_back(TokenType::LTEQ, line_count);
           consume();
         }
         else
-          tokens.push_back( {TokenType::LT, line_count} );
+          tokens.emplace_back(TokenType::LT, line_count);
       }
       else if (peek().value() == '>')
       {
         consume();
         if (peek().has_value() && peek().value() == '=')
         {
-          tokens.push_back( {TokenType::GTEQ, line_count} );
+          tokens.emplace_back(TokenType::GTEQ, line_count);
           consume();
         }
         else
-          tokens.push_back( {TokenType::GT, line_count} );
+          tokens.emplace_back(TokenType::GT, line_count);
       }
 
       else if (peek().value() == '!')
@@ -165,12 +165,12 @@ public:
         consume();
         if (peek().has_value() && peek().value() == '=')
         {
-          tokens.push_back( {TokenType::NOTEQ, line_count} );
+          tokens.emplace_back(TokenType::NOTEQ, line_count);
           consume();
         }
         else 
         {
-          tokens.push_back( {TokenType::NOT, line_count} );
+          tokens.emplace_back(TokenType::NOT, line_count);
           assert(false && "`Not` not implemented");
         }
       }
@@ -179,11 +179,11 @@ public:
         consume();
         if(peek().has_value() && peek().value() == '=')
         {
-          tokens.push_back( {TokenType::DBEQ, line_count} );
+          tokens.emplace_back(TokenType::DBEQ, line_count);
           consume();
         }
         else 
-          tokens.push_back( {TokenType::EQUALS, line_count} );
+          tokens.emplace_back(TokenType::EQUALS, line_count);
       }
       else if (peek().value() == '\'')
       {
@@ -196,14 +196,14 @@ public:
           std::cerr << "[Tokenizer Error] expected closing quote for character" << std::endl;;
           exit(EXIT_FAILURE);
         }
-        tokens.push_back( {TokenType::CHAR, line_count, buffer} );
+        tokens.emplace_back(TokenType::CHAR, line_count, buffer);
         buffer.clear();
       }
 
       /* Look for single char tokens */
       else if (tokenMap.find(peek().value()) != tokenMap.end()) 
       {
-        tokens.push_back( { tokenMap[peek().value()], line_count } );
+        tokens.emplace_back(tokenMap[peek().value()], line_count);
         consume();
       }
 

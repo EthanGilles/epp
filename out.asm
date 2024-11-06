@@ -81,7 +81,12 @@ label1:
     test rax, rax
     jz label2
     ;; /print
-    mov rax, 65
+    mov rax, 13
+    push rax
+    mov rax, 5
+    ;; push-pop removed rax
+    pop rbx
+    mul rbx
     ;; push-pop removed rax
     mov [char], al  ;; Store rax in char
     mov rax, 1

@@ -331,8 +331,8 @@ public:
       Token int_lit = {TokenType::INT_LIT, peek(-1).value().line, "10"};
       auto lit = m_allocator.emplace<NodeTermIntLit>(int_lit);
       auto term = m_allocator.emplace<NodeTerm>(lit);
-      auto expr = m_allocator.emplace<NodeExpr>(term);
-      args.push_back(expr);
+      auto newline = m_allocator.emplace<NodeExpr>(term);
+      args.push_back(newline);
 
       try_consume_err(TokenType::SEMI);
       auto print_stmt = m_allocator.emplace<NodeStmtPrint>();

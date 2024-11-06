@@ -277,7 +277,7 @@ public:
           std::cerr << "Identifier already exists: `" << stmt_set->ID.value.value() << "`" << std::endl;
           exit(EXIT_FAILURE);
         }
-        gen.m_vars.push_back( {.name = stmt_set->ID.value.value(), .stack_loc = gen.m_stack_size } );
+        gen.m_vars.emplace_back(stmt_set->ID.value.value(), gen.m_stack_size);
         gen.gen_expr(stmt_set->expr);
       }
       /* GENERATE -> reset ID = expr */
@@ -410,6 +410,7 @@ private:
     m_stack_size++;
   }
 
+  /* Also checks for redundant pushes and removes them */
   void pop(const std::string &reg) 
   {
     std::string output = m_output.str();
@@ -421,7 +422,7 @@ private:
       output.resize(output.size() - search.size());
       m_output.str("");
       m_output << output;
-      m_output << "    ;; push-pop removed " << reg << "\n";
+      // m_output << "    ;; push-pop removed " << reg << "\n";
     }
     else
       m_output << "    pop " << reg << "\n";

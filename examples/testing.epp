@@ -9,7 +9,7 @@ set Z to 26;
 printn();
 
 if (x == Z) {
-  please printn('A', 'B', 'C', 's', '!');
+  please printn(5*13, 'B', 'C', 's', '!');
   goodbye(0); // We should be at 'Z'!
 }
 else {
