@@ -32,11 +32,18 @@ int main(int argc, char *argv[])
   if (argc < 2) 
   {
     std::cerr << "Incorrect Usage. Correct usage is.. " << std::endl;
-    std::cerr << "please <input.epp>" << std::endl;
+    std::cerr << "please <input.pls>" << std::endl;
     return (EXIT_FAILURE);
   }
 
   std::filesystem::path filePath = argv[1];
+  if (filePath.extension() != ".pls")
+  {
+    std::cerr << "Incorrect Usage. Please use on a .pls file.. " << std::endl;
+    std::cerr << "please <input.pls>" << std::endl;
+    return (EXIT_FAILURE);
+  }
+
   if (!std::filesystem::exists(filePath)) 
   {
     std::cerr << "File `" << filePath.string() << "` does not exist.\n";

@@ -23,8 +23,8 @@ install:
 	chmod +x $(LOCAL_BIN)/please
 
 install-test:
-	please examples/hello.epp -o hello
-	./hello
+	please examples/install.epp -o test
+	./test
 
 lines-project:
 	./build/count-lines.sh src/main.cpp src/include/*

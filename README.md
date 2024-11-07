@@ -82,17 +82,7 @@ please file.epp
 The following code is an example of a valid 'Hello World!' E++ program:
 ```
 /* Hello world! */
-please set H = 72;
-please set e to 101;
-set l = 108;
-set o = 100 + 10 + 2 - 1;
-please set space to 8 * 4;
-set W to 87;
-set r = (50 * 2) + (7 * 2);
-set d to 100;
-set excl = 3 * 11;
-
-please print(H, e, l, l, o, space, W, o, r, l, d, excl);
+please printn('H', 'e', 'l', 'l', 'o', space, 'W', 'o', 'r', 'l', 'd', '!');
 
 goodbye(0);
 ```
