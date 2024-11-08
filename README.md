@@ -1,4 +1,4 @@
-# E++ and the Please Compiler
+# The Please Compiler
 
 ### COS360: Final Project
 
