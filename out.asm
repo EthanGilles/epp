@@ -5,22 +5,28 @@ section .text
     global _start
 
 _start:
+    ;; /set
+    mov rax, 0
+    push rax
+    ;; /while
+label0:
+    mov rax, 26
+    push rax
+    push QWORD [rsp + 8] ; Variable value
+    pop rax
+    pop rbx
+    xor rcx, rcx
+    cmp rax, rbx
+    setl cl
+    push rcx
+    pop rax
+    test rax, rax
+    jz label1
     ;; /print
-    mov rax, 69
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 43
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 43
+    push QWORD [rsp + 0] ; Variable value
+    mov rax, 65
+    pop rbx
+    add rax, rbx
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
@@ -34,7 +40,57 @@ _start:
     mov rdx, 1
     mov rsi, char
     syscall
-    mov rax, 105
+    ;; /reset
+    mov rax, 1
+    push rax
+    push QWORD [rsp + 8] ; Variable value
+    pop rax
+    pop rbx
+    add rax, rbx
+    mov [rsp + 0], rax
+    add rsp, 0
+    jmp label0
+label1:
+    ;; /while
+    ;; /set
+    mov rax, 26
+    push rax
+    ;; /print
+    mov rax, 10
+    mov [char], al  ;; Store rax in char
+    mov rax, 1
+    mov rdi, 1
+    mov rdx, 1
+    mov rsi, char
+    syscall
+    ;; /if
+    push QWORD [rsp + 0] ; Variable value
+    push QWORD [rsp + 16] ; Variable value
+    pop rax
+    pop rbx
+    xor rcx, rcx
+    cmp rax, rbx
+    sete cl
+    push rcx
+    pop rax
+    test rax, rax
+    jz label2
+    ;; /print
+    mov rax, 65
+    mov [char], al  ;; Store rax in char
+    mov rax, 1
+    mov rdi, 1
+    mov rdx, 1
+    mov rsi, char
+    syscall
+    mov rax, 66
+    mov [char], al  ;; Store rax in char
+    mov rax, 1
+    mov rdi, 1
+    mov rdx, 1
+    mov rsi, char
+    syscall
+    mov rax, 67
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
@@ -42,76 +98,6 @@ _start:
     mov rsi, char
     syscall
     mov rax, 115
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 32
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 105
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 110
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 115
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 116
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 97
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 108
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 108
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 101
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 100
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
@@ -138,6 +124,19 @@ _start:
     mov rax, 60  ; Syscall number 60 = exit
     pop rdi
     syscall
+    add rsp, 0
+    jmp label3
+label2:
+    ;; /else
+    ;; /exit
+    mov rax, 1
+    push rax
+    mov rax, 60  ; Syscall number 60 = exit
+    pop rdi
+    syscall
+    add rsp, 0
+label3:
+    ;; /if
     mov rax, 60  ; Syscall number 60 = exit
     xor rdi, rdi ; End program with 0
     syscall

@@ -1,4 +1,4 @@
-# The Please Compiler
+# 🙏The Please Compiler🙏
 
 ### COS360: Final Project
 

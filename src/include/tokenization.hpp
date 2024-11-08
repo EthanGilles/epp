@@ -1,5 +1,6 @@
 #pragma once
 #include <cctype>
+#include <cstdio>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -212,6 +213,22 @@ public:
         consume();
       }
 
+      /* Tokenize 🙏 */
+      else if(peek(1).has_value() && peek(2).has_value() && peek(3).has_value()) {
+        buffer.push_back(peek().value());
+        buffer.push_back(peek(1).value());
+        buffer.push_back(peek(2).value());
+        buffer.push_back(peek(3).value());
+        if(buffer == "🙏") {
+          consume();
+          consume();
+          consume();
+          consume();
+          tokens.emplace_back(TokenType::PLEASE, line_count);
+        }
+        buffer.clear();
+      }
+
       else
       {
           std::cerr << "[Tokenizer Error] Invalid token." << std::endl;
@@ -249,7 +266,7 @@ private:
     {'/', TokenType::FSLASH},
     {'%', TokenType::PERCENT},
     {',', TokenType::COMMA},
-    {'\'', TokenType::QUOTE}
+    {'\'', TokenType::QUOTE},
   };
 
   std::unordered_map<std::string, TokenType> keywordMap = {
@@ -265,6 +282,7 @@ private:
       {"else", TokenType::ELSE},
       {"please", TokenType::PLEASE},
       {"PLEASE", TokenType::PLEASE_C},
+      {"\U0001f64F", TokenType::PLEASE},
       {"space", TokenType::INT_LIT},
       {"newline", TokenType::INT_LIT},
       {"true", TokenType::INT_LIT},
