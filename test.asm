@@ -6,35 +6,21 @@ section .text
 
 _start:
     ;; /print
-    mov rax, 72
+    mov rax, 69
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
     mov rdx, 1
     mov rsi, char
     syscall
-    mov rax, 101
+    mov rax, 43
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
     mov rdx, 1
     mov rsi, char
     syscall
-    mov rax, 108
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 108
-    mov [char], al  ;; Store rax in char
-    mov rax, 1
-    mov rdi, 1
-    mov rdx, 1
-    mov rsi, char
-    syscall
-    mov rax, 111
+    mov rax, 43
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
@@ -48,21 +34,56 @@ _start:
     mov rdx, 1
     mov rsi, char
     syscall
-    mov rax, 87
+    mov rax, 105
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
     mov rdx, 1
     mov rsi, char
     syscall
-    mov rax, 111
+    mov rax, 115
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
     mov rdx, 1
     mov rsi, char
     syscall
-    mov rax, 114
+    mov rax, 32
+    mov [char], al  ;; Store rax in char
+    mov rax, 1
+    mov rdi, 1
+    mov rdx, 1
+    mov rsi, char
+    syscall
+    mov rax, 105
+    mov [char], al  ;; Store rax in char
+    mov rax, 1
+    mov rdi, 1
+    mov rdx, 1
+    mov rsi, char
+    syscall
+    mov rax, 110
+    mov [char], al  ;; Store rax in char
+    mov rax, 1
+    mov rdi, 1
+    mov rdx, 1
+    mov rsi, char
+    syscall
+    mov rax, 115
+    mov [char], al  ;; Store rax in char
+    mov rax, 1
+    mov rdi, 1
+    mov rdx, 1
+    mov rsi, char
+    syscall
+    mov rax, 116
+    mov [char], al  ;; Store rax in char
+    mov rax, 1
+    mov rdi, 1
+    mov rdx, 1
+    mov rsi, char
+    syscall
+    mov rax, 97
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1
@@ -70,6 +91,20 @@ _start:
     mov rsi, char
     syscall
     mov rax, 108
+    mov [char], al  ;; Store rax in char
+    mov rax, 1
+    mov rdi, 1
+    mov rdx, 1
+    mov rsi, char
+    syscall
+    mov rax, 108
+    mov [char], al  ;; Store rax in char
+    mov rax, 1
+    mov rdi, 1
+    mov rdx, 1
+    mov rsi, char
+    syscall
+    mov rax, 101
     mov [char], al  ;; Store rax in char
     mov rax, 1
     mov rdi, 1

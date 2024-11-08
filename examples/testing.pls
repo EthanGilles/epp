@@ -1,3 +1,10 @@
+please set arr = {'y', 'e', 's'};
+reset arr[0] to 'n'
+reset arr[1] to 'o'
+reset arr[2] to '!'
+please set x = arr[2];
+print(arr);
+
 set x = 0; 
 
 while (x < 26) {

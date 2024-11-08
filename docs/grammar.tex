@@ -156,11 +156,6 @@
 % Document begins here 
 \begin{document}
 \hwheadings{}{}{}
-
-\textbf{Project Idea} \\
-Create a programming language and compiler. Below are some formal grammar rules 
-and syntax for the language, E++. \\
-
 \textbf{Syntax}
 \begin{itemize}
   \item Variable \textit{shadowing} is \textbf{not} allowed. Having a variable with the same name 
@@ -171,7 +166,6 @@ and syntax for the language, E++. \\
   \item Single line comments are denoted by `//' and Multi-line comments are denoted with `/* */'
   \item You must say \textbf{please} or \textbf{PLEASE} enough to satisfy the compiler.
 \end{itemize}
-
 \textbf{Producers}
 \begin{align*}
   [\text{Program}] &\to [\text{Statement}]^* \\
@@ -183,6 +177,7 @@ and syntax for the language, E++. \\
     \text{print}([\text{Expr}] ,^* [\text{Expr}]^*); \\ 
     \text{printn}([\text{Expr}] ,^* [\text{Expr}]^*); \\ 
     \text{set} \; \text{ID} = [\text{Expr}]; \\
+    \text{set} \; \text{ID} = [\text{List}]; \\
     \text{reset} \; \text{ID} = [\text{Expr}]; \\
     \text{if} ([\text{Expr}])[\text{Scope}][\text{AfterIf}]  \\
     \text{while} ([\text{Expr}])[\text{Scope}] \\
@@ -207,9 +202,16 @@ and syntax for the language, E++. \\
     \left([\text{Expr}]\right) \\
     \text{'char'} 
   \end{cases} \\
+  [\text{ID}] &\to
+  \begin{cases}
+    \text{id\_lit} \\
+    [\text{ListLocation}] \\
+  \end{cases} \\
 \end{align*}
 
+
 \begin{align*}
+  [\text{ListLocation}] &\to \text{id\_lit}[ \; [\text{Expr}] \; ]\\
   [\text{BinaryExpr}] &\to 
   \begin{cases}
     [\text{Expr}] \times [\text{Expr}] & precedence = 2 \\
@@ -226,11 +228,12 @@ and syntax for the language, E++. \\
   \end{cases} \\
 \end{align*}
 
+
 \textbf{Terminals}
 \begin{align*}
   \text{int\_lit} &\to \text{[0-9]}^* \\
-  \text{char} &\to \text{(int)[0-9a-zA-Z]} \\
-  \text{ID} &\to \text{[a-zA-Z][a-zA-Z0-9]}^* \\
+  \text{char} &\to \text{(int)[0-9a-zA-Z]}^1 \\
+  \text{id\_lit} &\to [\text{a-zA-Z}][\text{0-9a-zA-Z}]^* \\
 \end{align*}
 
 \end{document}

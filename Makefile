@@ -13,7 +13,7 @@ clean:
 
 # Test 
 test:
-	./build/please examples/testing.epp
+	./build/please examples/testing.pls
 	./out
 
 # Install target
@@ -23,7 +23,7 @@ install:
 	chmod +x $(LOCAL_BIN)/please
 
 install-test:
-	please examples/install.epp -o test
+	please examples/install.pls -o test
 	./test
 
 lines-project:

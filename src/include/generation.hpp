@@ -457,6 +457,7 @@ private:
   {
     std::string name;
     size_t stack_loc;
+    size_t size;
   };
 
   float m_please_count = 0;

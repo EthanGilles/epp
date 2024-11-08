@@ -30,7 +30,7 @@ The idea behind the project is to encourage a unique syntax style that introduce
 ## Features
 
 - **Syntax Enforcement**: The compiler will only compile code if it detects the right amount of polite language, including "please" or "PLEASE".
-- **Basic Language Constructs**: Supports fundamental operations, including variable declarations, basic arithmetic, conditional statements and print statements.
+- **Basic Language Constructs**: Supports fundamental operations, including variable declarations, basic arithmetic, conditional statements, loops and print statements.
 - **Error Handling**: Provides 'user-friendly' error messages when polite language is missing or when syntax rules are broken.
 - **Tokenization and Parsing**: Uses custom-built tokenization and parsing to identify keywords, operators, and polite phrases.
 - **Code Generation**: Outputs runnable x86 assembly instructions which it will then assemble using the NASM assembler and link object files with the GNU linker to create an executable.
@@ -41,8 +41,13 @@ The idea behind the project is to encourage a unique syntax style that introduce
 
 ### Prerequisites
 
-- A working C/C++ compiler.
+- A Debian/Ubuntu Linux system.
+- We're using *modern* C++. gcc C++ 20 compiler is required.
 - cmake, make
+- Netwide Assembler
+    ```bash
+    sudo apt install gcc cmake nasm
+    ```
 
 ### Installation
 
@@ -65,7 +70,7 @@ The idea behind the project is to encourage a unique syntax style that introduce
 
 You should get the following output: 
 ``` 
-Hello World!
+E++ is installed!
 ``` 
 Along with two new files in the current directory: `hello.asm` and `hello`.
 
