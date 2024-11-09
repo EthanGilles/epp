@@ -1,6 +1,6 @@
 # 🙏The Please Compiler🙏
 
-![Logo](https://github.com/EthanGilles/epp/blob/bf8c3a9675bd0553a0d1d37fb41ff36ec79bff97/docs/logo.png)
+<img src="../docs/logo.png" alt="Logo" width="200"/>
 
 ### COS360: Final Project
 
