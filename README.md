@@ -1,6 +1,6 @@
 # 🙏The Please Compiler🙏
 
-<img src="../docs/logo.png" alt="Logo" width="200"/>
+<img src="https://github.com/EthanGilles/epp/blob/6efea11a5dcf35c67199a1388275c0d7e5fee52e/docs/logo.png" alt="Logo" width="200"/>
 
 ### COS360: Final Project
 
