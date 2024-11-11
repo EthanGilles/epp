@@ -1,7 +1,7 @@
 #pragma once 
+#include <string>
 #include <cstdlib>
 #include <iostream>
-#include <string>
 #include <vector>
 #include "arena.hpp"
 #include "tokenization.hpp"
@@ -27,10 +27,24 @@ public:
     }
     else if (auto id = try_consume(TokenType::ID))
     {
-      auto term_id = m_allocator.emplace<NodeTermID>(id.value());
-
-      auto term = m_allocator.emplace<NodeTerm>(term_id);
-      return term;
+      /* PARSE -> ID[EXPR] */
+      if(try_consume(TokenType::LBRACKET))
+      {
+        auto expr = parse_expr();
+        try_consume_err(TokenType::RBRACKET);
+        auto list = m_allocator.emplace<NodeTermIDLoc>(id.value(), expr.value());
+        auto term_id = m_allocator.emplace<NodeTermID>(list);
+        auto term = m_allocator.emplace<NodeTerm>(term_id);
+        return term;
+      }
+      /* PARSE -> ID */
+      else 
+      {
+        auto id_lit = m_allocator.emplace<NodeTermIDLit>(id.value());
+        auto term_id = m_allocator.emplace<NodeTermID>(id_lit);
+        auto term = m_allocator.emplace<NodeTerm>(term_id);
+        return term;
+      }
     }
     else if (auto op = try_consume(TokenType::LPAREN))
     {
@@ -55,6 +69,64 @@ public:
     }
     else 
       return {};
+  }
+
+  std::optional<NodeList*> parse_list() {
+    /* PARSE {EXPR, EXPR, ...} */
+    if(auto bracket = try_consume(TokenType::LCURLY)) {
+      std::vector<NodeExpr*> elements;
+
+      while (true)
+      {
+        if(auto expr = parse_expr())
+        {
+          elements.push_back(expr.value());
+        }
+        /* this sucks */
+        else if(peek().has_value() && peek().value().type == TokenType::COMMA)
+          consume();
+        else if (peek().has_value() && peek().value().type == TokenType::RCURLY)
+        {
+          consume();
+          break;
+        }
+      }
+
+      auto pre_init = m_allocator.emplace<NodeListPreInit>(elements);
+      auto list = m_allocator.emplace<NodeList>(pre_init);
+      return list;
+    }
+    /* PARSE [EXPR, EXPR] */
+    else if(auto bracket = try_consume(TokenType::LBRACKET)) {
+      std::vector<NodeExpr*> elements;
+
+      /* hack :( */
+      auto size = try_consume(TokenType::INT_LIT);
+      if (!size.has_value())
+        error_expected("integer literal (not an expression) for size");
+
+      size_t list_size = std::stoi(size.value().value.value());
+
+      /* set initial value to 0 */
+      Token init_token = {TokenType::INT_LIT, bracket.value().line, "0"};
+      auto value = m_allocator.emplace<NodeTermIntLit>(init_token);
+      auto term = m_allocator.emplace<NodeTerm>(value);
+      std::optional<NodeExpr*> init_value = m_allocator.emplace<NodeExpr>(term);
+
+      /* Two arguments */
+      if(try_consume(TokenType::COMMA)) {
+        init_value = parse_expr();
+        if (!init_value.has_value())
+          error_expected("expression following comma");
+      }
+
+      try_consume_err(TokenType::RBRACKET);
+
+      auto not_init = m_allocator.emplace<NodeListNotInit>(list_size, init_value.value());
+      auto list = m_allocator.emplace<NodeList>(not_init);
+      return list;
+    }
+    return {};
   }
 
   std::optional<NodeExpr*> parse_expr(int min_precedence = 0, bool has_cmp = false)
@@ -341,25 +413,36 @@ public:
       return stmt;
     }
 
-    /* PARSE -> SET ID = EXPR */
+    /* PARSE -> SET ID = EXPR || [LIST] */
     else if (peek().has_value() && peek().value().type == TokenType::SET  /* SET */
     && peek(1).has_value() && peek(1).value().type == TokenType::ID       /* ID  */
     && peek(2).has_value() && peek(2).value().type == TokenType::EQUALS)  /*  =  */
     {
       consume();  /* consume SET */
-      auto stmt_set = m_allocator.emplace<NodeStmtSet>();
-      stmt_set->ID = consume(); /* consume ID */
+      Token ID = consume(); /* consume ID */
       consume(); /* consume = */
+      auto stmt_set = m_allocator.alloc<NodeStmtSet>(); 
 
-      if (auto expr = parse_expr())
-        stmt_set->expr = expr.value();
-      else
+      if (auto expr = parse_expr()) 
+      {
+        auto set_id = m_allocator.alloc<NodeStmtSetID>();
+        set_id->ID = ID;
+        set_id->expr = expr.value();
+        stmt_set->variant = set_id;
+      }
+      else if (auto list = parse_list()) 
+      {
+        auto set_list = m_allocator.alloc<NodeStmtSetList>();
+        set_list->ArrID = ID;
+        set_list->list = list.value();
+        stmt_set->variant = set_list;
+      }
+      else 
         error_invalid("expression");
 
       try_consume_err(TokenType::SEMI);
 
-      auto stmt = m_allocator.emplace<NodeStmt>();
-      stmt->variant = stmt_set;
+      auto stmt = m_allocator.emplace<NodeStmt>(stmt_set);
       return stmt;
     }
 
@@ -370,12 +453,12 @@ public:
             peek(2).has_value() && peek(2).value().type == TokenType::EQUALS )
     {
       consume(); // consume RESET
-      const auto reset = m_allocator.alloc<NodeStmtReset>();
-      reset->ID = consume(); // consume ID 
-      consume();
+      const auto reset_id = m_allocator.emplace<NodeStmtResetID>(consume());
+      const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
+      consume(); //consume =
 
       if(const auto expr = parse_expr()) 
-        reset->expr = expr.value();
+        reset_id->expr = expr.value();
       else 
         error_invalid("expression");
 
@@ -384,6 +467,35 @@ public:
       return stmt;
     }
 
+    /* PARSE -> RESET ID[EXPR] = EXPR */
+    else if (peek().has_value() && peek().value().type == TokenType::RESET  /* SET */
+    && peek(1).has_value() && peek(1).value().type == TokenType::ID       /* ID  */
+    && peek(2).has_value() && peek(2).value().type == TokenType::LBRACKET)  /*  [  */
+    {
+      consume(); //consume SET
+      const auto reset_arrid = m_allocator.emplace<NodeStmtResetArrID>(consume());
+      const auto reset = m_allocator.emplace<NodeStmtReset>(reset_arrid);
+      consume(); //consume [
+      
+      /* Parse index expression */
+      if(const auto expr = parse_expr()) 
+        reset_arrid->index = expr.value();
+      else 
+        error_invalid("expression");
+
+      try_consume_err(TokenType::RBRACKET); //consume ]
+      try_consume_err(TokenType::EQUALS); //consume =
+      
+      /* Parse assignment expression */
+      if(const auto expr = parse_expr()) 
+        reset_arrid->expr = expr.value();
+      else 
+        error_invalid("expression");
+
+      try_consume_err(TokenType::SEMI);
+      auto stmt = m_allocator.emplace<NodeStmt>(reset);
+      return stmt;
+    }
 
     /* PARSE -> SCOPE */
     else if (peek().has_value() && peek().value().type == TokenType::LCURLY)

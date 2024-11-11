@@ -1,4 +1,8 @@
-set arr to {1, 2, 3, 4};
+set arr to {'A', 'B', 'C', 'D'};
+
+reset arr[1] to 'Z';
+printn(arr[1]);
+
 
 🙏 set x = 0; 
 

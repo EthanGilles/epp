@@ -1,4 +1,6 @@
 #pragma once 
+#include <variant>
+#include <ranges>
 #include "grammar.hpp"
 #include "parser.hpp"
 #include <algorithm>
@@ -18,6 +20,67 @@ public:
     , m_max_please(max_please)
     , m_min_please(min_please){}
 
+  void gen_term_id(const NodeTermID *term_id)
+  {
+    struct TermIDVisitor {
+      Generator &gen;
+      void operator()(const NodeTermIDLit *id_lit) const
+      {
+        const auto it = std::ranges::find_if(std::as_const(gen.m_vars), [&](const Var& var) 
+            { return var.name == id_lit->ID.value.value(); });
+
+        if(it == gen.m_vars.cend())
+        {
+          std::cerr << "Undeclared identifier: " << id_lit->ID.value.value() << std::endl;
+          exit(EXIT_FAILURE);
+        }
+        if(it->size != 0)
+        {
+          std::cerr << "Trying to access list element with no index value" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+
+        std::stringstream offset;
+        offset << "QWORD [rsp + " << (gen.m_stack_size - (*it).stack_loc - 1) * 8 << "] ; Variable value";
+        gen.push(offset.str());
+      }
+      void operator()(const NodeTermIDLoc *id_loc) const
+      {
+        const auto it = std::ranges::find_if(std::as_const(gen.m_vars), [&](const Var& var) 
+            { return var.name == id_loc->ID.value.value(); });
+
+        if(it == gen.m_vars.cend())
+        {
+          std::cerr << "Undeclared identifier: " << id_loc->ID.value.value() << std::endl;
+          exit(EXIT_FAILURE);
+        }
+        if(it->size == 0)
+        {
+          std::cerr << "Trying to use index on a non-list value" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+
+        /* time to do asm math to get the index */
+        gen.m_output << "    ;; /array location\n";
+        gen.gen_expr(id_loc->offset);
+
+        gen.m_output << "    mov rax, rsp\n";
+        gen.m_output << "    add rax, " << (gen.m_stack_size - (*it).stack_loc - 1) * 8 << "\n";
+
+        gen.pop("rbx");
+        gen.m_output << "    shl rbx, 3\n";
+        gen.m_output << "    sub rax, rbx\n";
+
+        std::stringstream offset;
+        offset << "QWORD [rax] ;; index value";
+        gen.push(offset.str());
+      }
+    };
+
+    TermIDVisitor visitor {.gen = *this};
+    std::visit(visitor, term_id->variant);
+  }
+
   void gen_term(const NodeTerm *term) 
   {
     struct TermVisitor {
@@ -29,18 +92,8 @@ public:
       }
       void operator()(const NodeTermID *term_id) const
       {
-        const auto it = std::ranges::find_if(std::as_const(gen.m_vars), [&](const Var& var) 
-            { return var.name == term_id->ID.value.value(); });
+        gen.gen_term_id(term_id);
 
-        if(it == gen.m_vars.cend())
-        {
-          std::cerr << "Undeclared identifier: " << term_id->ID.value.value() << std::endl;
-          exit(EXIT_FAILURE);
-        }
-
-        std::stringstream offset;
-        offset << "QWORD [rsp + " << (gen.m_stack_size - (*it).stack_loc - 1) * 8 << "] ; Variable value";
-        gen.push(offset.str());
       }
       void operator()(const NodeTermParenth *term_parenth) const
       {
@@ -234,6 +287,139 @@ public:
     std::visit(visitor, pred->variant);
   }
 
+  void gen_list(const NodeList *list, std::string ID)
+  {
+    struct ListVisitor {
+      Generator &gen;
+      std::string &ID;
+
+      void operator()(const NodeListPreInit *pre_init) const
+      {
+        gen.m_vars.emplace_back(ID, gen.m_stack_size, pre_init->elements.size());
+        gen.m_output << "    ;; /init list\n";
+        for(auto element : pre_init->elements)
+        {
+          gen.gen_expr(element);
+        }
+      }
+      void operator()(const NodeListNotInit *not_init) const
+      {
+        gen.m_vars.emplace_back(ID, gen.m_stack_size, not_init->size);
+
+        gen.m_output << "    ;; /not init list\n";
+        gen.m_output << "    mov rsi, " << not_init->size << "\n";
+        std::string loopstart = gen.create_label();
+        gen.m_output << loopstart << ":\n";
+        gen.gen_expr(not_init->init_value);
+        gen.m_output << "    dec rsi\n";
+        gen.m_output << "    jnz " << loopstart << "\n";
+
+        gen.m_stack_size += not_init->size-1; 
+      }
+    };
+
+    ListVisitor visitor {.gen = *this, .ID = ID };
+    std::visit(visitor, list->variant);
+  }
+
+  void gen_stmt_set_list(const NodeStmtSetList *set_list)
+  {
+    const auto it = std::ranges::find_if(std::as_const(m_vars), [&](const Var& var) 
+        { return var.name == set_list->ArrID.value.value(); });
+
+    if (it != m_vars.cend())
+    {
+      std::cerr << "Identifier already exists: `" << set_list->ArrID.value.value() << "`" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+
+    gen_list(set_list->list, set_list->ArrID.value.value());
+  }
+
+  void gen_stmt_set(const NodeStmtSet *stmt_set) 
+  {
+    struct StmtSetVisitor {
+      Generator &gen;
+
+      void operator()(const NodeStmtSetID *stmt_id) const
+      {
+        gen.m_output << "    ;; /set\n";
+        const auto it = std::ranges::find_if(std::as_const(gen.m_vars), [&](const Var& var) 
+            { return var.name == stmt_id->ID.value.value(); });
+
+        if (it != gen.m_vars.cend())
+        {
+          std::cerr << "Identifier already exists: `" << stmt_id->ID.value.value() << "`" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+        gen.m_vars.emplace_back(stmt_id->ID.value.value(), gen.m_stack_size);
+        gen.gen_expr(stmt_id->expr);
+      }
+      void operator()(const NodeStmtSetList *list) const
+      {
+        gen.gen_stmt_set_list(list);
+      }
+    };
+
+    StmtSetVisitor visitor {.gen = *this };
+    std::visit(visitor, stmt_set->variant);
+  }
+
+  void gen_stmt_reset(const NodeStmtReset *stmt_reset)
+  {
+    struct StmtResetVisitor {
+      Generator &gen;
+      void operator()(const NodeStmtResetID *stmt_id) const
+      {
+        gen.m_output << "    ;; /reset\n";
+        auto it = std::ranges::find_if(gen.m_vars, [&](const Var& var) 
+            { return var.name == stmt_id->ID.value.value(); });
+
+        if (it == gen.m_vars.cend())
+        {
+          std::cerr << "Resetting an undeclared identifier: `" << stmt_id->ID.value.value() << "`" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+        gen.gen_expr(stmt_id->expr);
+        gen.pop("rax");
+        gen.m_output << "    mov [rsp + " << (gen.m_stack_size - it->stack_loc - 1) * 8 << "], rax\n";
+      }
+      void operator()(const NodeStmtResetArrID *arr_id) const
+      {
+        auto it = std::ranges::find_if(gen.m_vars, [&](const Var& var) 
+            { return var.name == arr_id->ArrID.value.value(); });
+
+        if (it == gen.m_vars.cend())
+        {
+          std::cerr << "Resetting an undeclared identifier: `" << arr_id->ArrID.value.value() << "`" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+        if (it->size == 0)
+        {
+          std::cerr << "Trying to use index on non-list variable" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+
+        gen.m_output << "    ;; /array location\n";
+        gen.gen_expr(arr_id->expr);
+        gen.gen_expr(arr_id->index);
+
+        gen.m_output << "    mov rcx, rsp\n";
+        gen.m_output << "    add rcx, " << (gen.m_stack_size - (*it).stack_loc - 1) * 8 << "\n";
+
+        gen.pop("rbx"); // pop index
+        gen.m_output << "    shl rbx, 3\n";
+        gen.m_output << "    sub rcx, rbx\n";
+        gen.pop("rax"); // pop value
+
+        gen.m_output << "    mov [rcx], rax\n";
+      }
+    };
+
+    StmtResetVisitor visitor {.gen = *this};
+    std::visit(visitor, stmt_reset->variant);
+  }
+
   void gen_stmt(const NodeStmt *stmt) 
   {
     struct StmtVisitor 
@@ -265,36 +451,19 @@ public:
           gen.m_output << "    syscall\n";
         }
       }
-      /* GENERATE -> set ID = expr */
+
+      /* GENERATE -> set ID || arrID = expr */
+      /* GENERATE -> set arrID = list */
       void operator()(const NodeStmtSet *stmt_set)
       {
-        gen.m_output << "    ;; /set\n";
-        const auto it = std::ranges::find_if(std::as_const(gen.m_vars), [&](const Var& var) 
-            { return var.name == stmt_set->ID.value.value(); });
-
-        if (it != gen.m_vars.cend())
-        {
-          std::cerr << "Identifier already exists: `" << stmt_set->ID.value.value() << "`" << std::endl;
-          exit(EXIT_FAILURE);
-        }
-        gen.m_vars.emplace_back(stmt_set->ID.value.value(), gen.m_stack_size);
-        gen.gen_expr(stmt_set->expr);
+        gen.gen_stmt_set(stmt_set);
       }
+
       /* GENERATE -> reset ID = expr */
       void operator()(const NodeStmtReset *stmt_reset) 
       {
-        gen.m_output << "    ;; /reset\n";
-        auto it = std::ranges::find_if(gen.m_vars, [&](const Var& var) 
-            { return var.name == stmt_reset->ID.value.value(); });
+        gen.gen_stmt_reset(stmt_reset);
 
-        if (it == gen.m_vars.cend())
-        {
-          std::cerr << "Resetting an undeclared identifier: `" << stmt_reset->ID.value.value() << "`" << std::endl;
-          exit(EXIT_FAILURE);
-        }
-        gen.gen_expr(stmt_reset->expr);
-        gen.pop("rax");
-        gen.m_output << "    mov [rsp + " << (gen.m_stack_size - it->stack_loc - 1) * 8 << "], rax\n";
       }
       /* GENERATE -> { } */
       void operator()(const NodeScope *stmt_scope) 
@@ -386,6 +555,7 @@ public:
     m_output << "    mov rax, 60  ; Syscall number 60 = exit\n";
     m_output << "    xor rdi, rdi ; End program with 0\n";
     m_output << "    syscall";
+
     return m_output.str();
   }
 
@@ -459,6 +629,7 @@ private:
     size_t stack_loc;
     size_t size;
   };
+
 
   float m_please_count = 0;
   float m_please_stmt = 0;

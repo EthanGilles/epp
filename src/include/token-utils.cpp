@@ -44,6 +44,10 @@ std::string to_string(const TokenType type)
       return "`{`";
     case TokenType::RCURLY:
       return "`}`";
+    case TokenType::LBRACKET:
+      return "`[`";
+    case TokenType::RBRACKET:
+      return "`]`";
     case TokenType::SEMI:
       return "`;`";
     case TokenType::EQUALS:
@@ -69,6 +73,7 @@ std::string to_string(const TokenType type)
   }
 }
 
+/* Returns true if token is a binary comparison */
 bool is_bin_cmp(TokenType type)
 {
   switch(type) {

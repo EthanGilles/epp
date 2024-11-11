@@ -5,6 +5,51 @@ section .text
     global _start
 
 _start:
+    ;; /init list
+    mov rax, 65
+    push rax
+    mov rax, 66
+    push rax
+    mov rax, 67
+    push rax
+    mov rax, 68
+    push rax
+    ;; /array location
+    mov rax, 90
+    push rax
+    mov rax, 1
+    push rax
+    mov rcx, rsp
+    add rcx, 40
+    pop rbx
+    shl rbx, 3
+    sub rcx, rbx
+    pop rax
+    mov [rcx], rax
+    ;; /print
+    ;; /array location
+    mov rax, 1
+    push rax
+    mov rax, rsp
+    add rax, 32
+    pop rbx
+    shl rbx, 3
+    sub rax, rbx
+    push QWORD [rax] ;; index value
+    pop rax
+    mov [char], al  ;; Store rax in char
+    mov rax, 1
+    mov rdi, 1
+    mov rdx, 1
+    mov rsi, char
+    syscall
+    mov rax, 10
+    mov [char], al  ;; Store rax in char
+    mov rax, 1
+    mov rdi, 1
+    mov rdx, 1
+    mov rsi, char
+    syscall
     ;; /set
     mov rax, 0
     push rax

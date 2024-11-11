@@ -7,10 +7,6 @@ struct NodeTermIntLit {
   Token int_lit;
 };
 
-/* ID */
-struct NodeTermID {
-  Token ID;
-};
 
 struct NodeExpr;
 
@@ -104,6 +100,21 @@ struct NodeBinExpr {
   > variant;
 };
 
+/* ID */
+struct NodeTermIDLit {
+  Token ID;
+};
+
+struct NodeTermIDLoc {
+  Token ID;
+  NodeExpr* offset;
+};
+
+struct NodeTermID {
+  std::variant<NodeTermIDLit*, NodeTermIDLoc*> variant;
+};
+
+
 /* TERM */
 struct NodeTerm {
   std::variant<NodeTermIntLit*, NodeTermID*, NodeTermParenth* > variant;
@@ -115,9 +126,34 @@ struct NodeExpr {
 };
 
 /* STMTS */
-struct NodeStmtSet {
+
+struct NodeStmtSetID {
   Token ID;
   NodeExpr* expr;
+};
+
+
+struct NodeListPreInit {
+  std::vector<NodeExpr*> elements;
+};
+
+struct NodeListNotInit {
+  size_t size;
+  NodeExpr* init_value;
+};
+
+struct NodeList {
+  std::variant<NodeListPreInit*, NodeListNotInit*> variant;
+};
+
+
+struct NodeStmtSetList {
+  Token ArrID;
+  NodeList* list;
+};
+
+struct NodeStmtSet {
+  std::variant<NodeStmtSetList*, NodeStmtSetID*> variant;
 };
 
 struct NodeStmt;
@@ -159,9 +195,20 @@ struct NodeStmtPlease {
   size_t value;
 };
 
-struct NodeStmtReset {
+
+struct NodeStmtResetID {
   Token ID;
   NodeExpr *expr;
+};
+
+struct NodeStmtResetArrID {
+  Token ArrID;
+  NodeExpr* index;
+  NodeExpr* expr;
+};
+
+struct NodeStmtReset {
+  std::variant<NodeStmtResetID*, NodeStmtResetArrID*> variant;
 };
 
 /* STMT VARIANTS */

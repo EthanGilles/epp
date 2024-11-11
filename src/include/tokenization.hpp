@@ -29,6 +29,8 @@ enum class TokenType {
   RPAREN, // ')'
   LCURLY, // '{'
   RCURLY, //'}'
+  LBRACKET, // '['
+  RBRACKET, // ']'
   EQUALS, // '='
   TO, // 'to'
   PLUS, // '+'
@@ -78,18 +80,18 @@ public:
         if (keyword != keywordMap.end()) 
         {
           if(buffer == "space") 
-            tokens.push_back( {TokenType::INT_LIT, line_count, "32"} );
+            tokens.emplace_back(TokenType::INT_LIT, line_count, "32");
           else if (buffer == "newline")
-              tokens.push_back( {TokenType::INT_LIT, line_count, "10"} );
+              tokens.emplace_back(TokenType::INT_LIT, line_count, "10");
           else if (buffer == "true")
-              tokens.push_back( {TokenType::INT_LIT, line_count, "1"} );
+              tokens.emplace_back(TokenType::INT_LIT, line_count, "1");
           else if (buffer == "false")
-              tokens.push_back( {TokenType::INT_LIT, line_count, "0"} );
+              tokens.emplace_back(TokenType::INT_LIT, line_count, "0");
           else
-            tokens.push_back( {keyword->second, line_count} ); 
+            tokens.emplace_back(keyword->second, line_count);
         }
         else // Is identifier
-          tokens.push_back( {TokenType::ID, line_count, buffer} );
+          tokens.emplace_back(TokenType::ID, line_count, buffer);
 
         buffer.clear();
       }
@@ -213,6 +215,7 @@ public:
         consume();
       }
 
+      /* why?? */
       /* Tokenize 🙏 */
       else if(peek(1).has_value() && peek(2).has_value() && peek(3).has_value()) {
         buffer.push_back(peek().value());
@@ -258,6 +261,8 @@ private:
     {')', TokenType::RPAREN},
     {'{', TokenType::LCURLY},
     {'}', TokenType::RCURLY},
+    {'[', TokenType::LBRACKET},
+    {']', TokenType::RBRACKET},
     {';', TokenType::SEMI},
     {'=', TokenType::EQUALS},
     {'+', TokenType::PLUS},
@@ -282,7 +287,6 @@ private:
       {"else", TokenType::ELSE},
       {"please", TokenType::PLEASE},
       {"PLEASE", TokenType::PLEASE_C},
-      {"\U0001f64F", TokenType::PLEASE},
       {"space", TokenType::INT_LIT},
       {"newline", TokenType::INT_LIT},
       {"true", TokenType::INT_LIT},

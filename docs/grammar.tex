@@ -177,7 +177,7 @@
     \text{print}([\text{Expr}] ,^* [\text{Expr}]^*); \\ 
     \text{printn}([\text{Expr}] ,^* [\text{Expr}]^*); \\ 
     \text{set} \; \text{ID} = [\text{Expr}]; \\
-    \text{set} \; \text{ID} = [\text{List}]; \\
+    \text{set} \; \text{array\_id} = [\text{List}]; \\
     \text{reset} \; \text{ID} = [\text{Expr}]; \\
     \text{if} ([\text{Expr}])[\text{Scope}][\text{AfterIf}]  \\
     \text{while} ([\text{Expr}])[\text{Scope}] \\
@@ -205,6 +205,7 @@
   [\text{ID}] &\to
   \begin{cases}
     \text{id\_lit} \\
+    \text{array\_id} \\
     [\text{ListLocation}] \\
   \end{cases} \\
 \end{align*}
@@ -212,6 +213,12 @@
 
 \begin{align*}
   [\text{ListLocation}] &\to \text{id\_lit}[ \; [\text{Expr}] \; ]\\
+  [\text{List}] &\to 
+  \begin{cases}
+    \{[\text{Expr}], [\text{Expr}], \cdots \} \\
+    [\; [\text{Expr}] \;] \\
+    [\; [\text{Expr}], [\text{Expr}] \;] \\
+  \end{cases} \\
   [\text{BinaryExpr}] &\to 
   \begin{cases}
     [\text{Expr}] \times [\text{Expr}] & precedence = 2 \\
