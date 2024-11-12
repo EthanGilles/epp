@@ -138,7 +138,7 @@ struct NodeListPreInit {
 };
 
 struct NodeListNotInit {
-  size_t size;
+  NodeExpr* size;
   NodeExpr* init_value;
 };
 

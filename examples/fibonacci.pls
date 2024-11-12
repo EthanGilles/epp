@@ -17,3 +17,5 @@ if (nums[2] == 55) {
 else {
   please printn('f', 'a', 'i', 'l');
 }
+
+goodbye(0);

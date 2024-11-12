@@ -20,11 +20,11 @@ public:
     , m_max_please(max_please)
     , m_min_please(min_please){}
 
-  void gen_term_id(const NodeTermID *term_id)
+  int gen_term_id(const NodeTermID *term_id)
   {
     struct TermIDVisitor {
       Generator &gen;
-      void operator()(const NodeTermIDLit *id_lit) const
+      int operator()(const NodeTermIDLit *id_lit) const
       {
         const auto it = std::ranges::find_if(std::as_const(gen.m_vars), [&](const Var& var) 
             { return var.name == id_lit->ID.value.value(); });
@@ -34,7 +34,7 @@ public:
           std::cerr << "Undeclared identifier: " << id_lit->ID.value.value() << std::endl;
           exit(EXIT_FAILURE);
         }
-        if(it->size != 0)
+        if(it->is_list)
         {
           std::cerr << "Trying to access list element with no index value" << std::endl;
           exit(EXIT_FAILURE);
@@ -42,9 +42,11 @@ public:
 
         std::stringstream offset;
         offset << "QWORD [rsp + " << (gen.m_stack_size - (*it).stack_loc - 1) * 8 << "] ; Variable value";
+        // std::cout << "accessing: " << it->name << " stack size: " <<  gen.m_stack_size << " location " << it->stack_loc << std::endl;
         gen.push(offset.str());
+        return it->values[0];
       }
-      void operator()(const NodeTermIDLoc *id_loc) const
+      int operator()(const NodeTermIDLoc *id_loc) const
       {
         const auto it = std::ranges::find_if(std::as_const(gen.m_vars), [&](const Var& var) 
             { return var.name == id_loc->ID.value.value(); });
@@ -54,7 +56,7 @@ public:
           std::cerr << "Undeclared identifier: " << id_loc->ID.value.value() << std::endl;
           exit(EXIT_FAILURE);
         }
-        if(it->size == 0)
+        if(!it->is_list)
         {
           std::cerr << "Trying to use index on a non-list value" << std::endl;
           exit(EXIT_FAILURE);
@@ -62,7 +64,13 @@ public:
 
         /* time to do asm math to get the index */
         gen.m_output << "    ;; /array location\n";
-        gen.gen_expr(id_loc->offset);
+        int index = gen.gen_expr(id_loc->offset);
+
+        if (index >= it->values.size())
+        {
+          std::cerr << "Index out of bounds" << std::endl;
+          exit(EXIT_FAILURE);
+        }
 
         gen.m_output << "    mov rax, rsp\n";
         gen.m_output << "    add rax, " << (gen.m_stack_size - (*it).stack_loc - 1) * 8 << "\n";
@@ -73,178 +81,192 @@ public:
 
         std::stringstream offset;
         offset << "QWORD [rax] ;; index value";
+        // std::cout << "accessing: " << it->name << " stack size: " <<  gen.m_stack_size << " location " << it->stack_loc << std::endl;
         gen.push(offset.str());
+        return it->values[index];
       }
     };
 
     TermIDVisitor visitor {.gen = *this};
-    std::visit(visitor, term_id->variant);
+    return std::visit(visitor, term_id->variant);
   }
 
-  void gen_term(const NodeTerm *term) 
+  int gen_term(const NodeTerm *term) 
   {
     struct TermVisitor {
       Generator &gen;
-      void operator()(const NodeTermIntLit *term_int_lit) const
+      int operator()(const NodeTermIntLit *term_int_lit) const
       {
         gen.m_output << "    mov rax, " << term_int_lit->int_lit.value.value() << "\n";
         gen.push("rax");
+        return std::stoi(term_int_lit->int_lit.value.value());
       }
-      void operator()(const NodeTermID *term_id) const
+      int operator()(const NodeTermID *term_id) const
       {
-        gen.gen_term_id(term_id);
+        return gen.gen_term_id(term_id);
 
       }
-      void operator()(const NodeTermParenth *term_parenth) const
+      int operator()(const NodeTermParenth *term_parenth) const
       {
-        gen.gen_expr(term_parenth->expr);
+        return gen.gen_expr(term_parenth->expr);
       }
     };
 
     TermVisitor visitor{.gen = *this};
-    std::visit(visitor, term->variant);
+    return std::visit(visitor, term->variant);
   }
 
-  void gen_bin_expr(const NodeBinExpr *bin_expr)
+  int gen_bin_expr(const NodeBinExpr *bin_expr)
   {
     struct BinExprVisitor {
       Generator &gen;
-      void operator()(const NodeBinExprMulti *multi) const
+      int operator()(const NodeBinExprMulti *multi) const
       {
-        gen.gen_expr(multi->rhs);
-        gen.gen_expr(multi->lhs);
+        int rhs = gen.gen_expr(multi->rhs);
+        int lhs = gen.gen_expr(multi->lhs);
         gen.pop("rax");
         gen.pop("rbx");
         gen.m_output << "    mul rbx\n";
         gen.push("rax");
+        return lhs * rhs;
       }
-      void operator()(const NodeBinExprDiv *div) const 
+      int operator()(const NodeBinExprDiv *div) const 
       {
-        gen.gen_expr(div->rhs);
-        gen.gen_expr(div->lhs);
+        int rhs = gen.gen_expr(div->rhs);
+        int lhs = gen.gen_expr(div->lhs);
         gen.pop("rax");
         gen.pop("rbx");
         gen.m_output << "    div rbx\n";
         gen.push("rax");
+        return lhs / rhs;
       }
-      void operator()(const NodeBinExprMod *mod) const
+      int operator()(const NodeBinExprMod *mod) const
       {
-        gen.gen_expr(mod->rhs);
-        gen.gen_expr(mod->lhs);
+        int rhs = gen.gen_expr(mod->rhs);
+        int lhs = gen.gen_expr(mod->lhs);
         gen.pop("rax");
         gen.pop("rbx");
         gen.m_output << "    xor  rdx, rdx\n"; /* clear rdx */
         gen.m_output << "    div rbx\n";
         gen.push("rdx"); /* rdx has remainder */
+        return lhs % rhs;
       }
-      void operator()(const NodeBinExprAdd *add) const
+      int operator()(const NodeBinExprAdd *add) const
       {
-        gen.gen_expr(add->rhs);
-        gen.gen_expr(add->lhs);
+        int rhs = gen.gen_expr(add->rhs);
+        int lhs = gen.gen_expr(add->lhs);
         gen.pop("rax");
         gen.pop("rbx");
         gen.m_output << "    add rax, rbx\n";
         gen.push("rax");
+        return lhs + rhs;
       }
-      void operator()(const NodeBinExprSub *sub) const
+      int operator()(const NodeBinExprSub *sub) const
       {
-        gen.gen_expr(sub->rhs);
-        gen.gen_expr(sub->lhs);
+        int rhs = gen.gen_expr(sub->rhs);
+        int lhs = gen.gen_expr(sub->lhs);
         gen.pop("rax");
         gen.pop("rbx");
         gen.m_output << "    sub rax, rbx\n";
         gen.push("rax");
+        return lhs - rhs;
       }
-      void operator()(const NodeBinCmpGT *gt) const
+      int operator()(const NodeBinCmpGT *gt) const
       {
-        gen.gen_expr(gt->rhs);
-        gen.gen_expr(gt->lhs);
+        int rhs = gen.gen_expr(gt->rhs);
+        int lhs = gen.gen_expr(gt->lhs);
         gen.pop("rax");
         gen.pop("rbx");
         gen.m_output << "    xor rcx, rcx\n";
         gen.m_output << "    cmp rax, rbx\n";
         gen.m_output << "    setg cl\n";
         gen.push("rcx");
+        return lhs > rhs ? 1 : 0;
       }
-      void operator()(const NodeBinCmpLT *lt) const
+      int operator()(const NodeBinCmpLT *lt) const
       {
-        gen.gen_expr(lt->rhs);
-        gen.gen_expr(lt->lhs);
+        int rhs = gen.gen_expr(lt->rhs);
+        int lhs = gen.gen_expr(lt->lhs);
         gen.pop("rax");
         gen.pop("rbx");
         gen.m_output << "    xor rcx, rcx\n";
         gen.m_output << "    cmp rax, rbx\n";
         gen.m_output << "    setl cl\n";
         gen.push("rcx");
+        return lhs < rhs ? 1 : 0;
       }
-      void operator()(const NodeBinCmpGTEQ *gteq) const
+      int operator()(const NodeBinCmpGTEQ *gteq) const
       {
-        gen.gen_expr(gteq->rhs);
-        gen.gen_expr(gteq->lhs);
+        int rhs = gen.gen_expr(gteq->rhs);
+        int lhs = gen.gen_expr(gteq->lhs);
         gen.pop("rax");
         gen.pop("rbx");
         gen.m_output << "    xor rcx, rcx\n";
         gen.m_output << "    cmp rax, rbx\n";
         gen.m_output << "    setge cl\n";
         gen.push("rcx");
+        return lhs >= rhs ? 1 : 0;
       }
-      void operator()(const NodeBinCmpLTEQ *lteq) const
+      int operator()(const NodeBinCmpLTEQ *lteq) const
       {
-        gen.gen_expr(lteq->rhs);
-        gen.gen_expr(lteq->lhs);
+        int rhs = gen.gen_expr(lteq->rhs);
+        int lhs = gen.gen_expr(lteq->lhs);
         gen.pop("rax");
         gen.pop("rbx");
         gen.m_output << "    xor rcx, rcx\n";
         gen.m_output << "    cmp rax, rbx\n";
         gen.m_output << "    setle cl\n";
         gen.push("rcx");
+        return lhs <= rhs ? 1 : 0;
       }
-      void operator()(const NodeBinCmpNOTEQ *noteq) const
+      int operator()(const NodeBinCmpNOTEQ *noteq) const
       {
-        gen.gen_expr(noteq->rhs);
-        gen.gen_expr(noteq->lhs);
+        int rhs = gen.gen_expr(noteq->rhs);
+        int lhs = gen.gen_expr(noteq->lhs);
         gen.pop("rax");
         gen.pop("rbx");
         gen.m_output << "    xor rcx, rcx\n";
         gen.m_output << "    cmp rax, rbx\n";
         gen.m_output << "    setne cl\n";
         gen.push("rcx");
+        return lhs != rhs ? 1 : 0;
       }
-      void operator()(const NodeBinCmpDBEQ *dbeq) const
+      int operator()(const NodeBinCmpDBEQ *dbeq) const
       {
-        gen.gen_expr(dbeq->rhs);
-        gen.gen_expr(dbeq->lhs);
+        int rhs = gen.gen_expr(dbeq->rhs);
+        int lhs = gen.gen_expr(dbeq->lhs);
         gen.pop("rax");
         gen.pop("rbx");
         gen.m_output << "    xor rcx, rcx\n";
         gen.m_output << "    cmp rax, rbx\n";
         gen.m_output << "    sete cl\n"; 
         gen.push("rcx");
+        return lhs == rhs ? 1 : 0;
       }
     };
 
     BinExprVisitor visitor {.gen = *this};
-    std::visit(visitor, bin_expr->variant);
+    return std::visit(visitor, bin_expr->variant);
   }
 
-  void gen_expr(const NodeExpr *expr) 
+  int gen_expr(const NodeExpr *expr) 
   {
     struct ExprVisitor
     {
       Generator &gen;
 
-      void operator()(const NodeTerm *term) const
+      int operator()(const NodeTerm *term) const
       {
-        gen.gen_term(term);
+        return gen.gen_term(term);
       }
-      void operator()(const NodeBinExpr *bin_expr) const
+      int operator()(const NodeBinExpr *bin_expr) const
       {
-        gen.gen_bin_expr(bin_expr);
+        return gen.gen_bin_expr(bin_expr);
       }
     };
 
     ExprVisitor visitor {.gen = *this};
-    std::visit(visitor, expr->variant);
+    return std::visit(visitor, expr->variant);
   }
 
   void gen_scope(const NodeScope *scope) 
@@ -295,26 +317,29 @@ public:
 
       void operator()(const NodeListPreInit *pre_init) const
       {
-        gen.m_vars.emplace_back(ID, gen.m_stack_size, pre_init->elements.size());
+        size_t location = gen.m_stack_size;
+        std::vector<int> values;
         gen.m_output << "    ;; /init list\n";
         for(auto element : pre_init->elements)
         {
-          gen.gen_expr(element);
+          int val = gen.gen_expr(element);
+          values.push_back(val);
         }
+        gen.m_vars.emplace_back(ID, location, values, true);
       }
       void operator()(const NodeListNotInit *not_init) const
       {
-        gen.m_vars.emplace_back(ID, gen.m_stack_size, not_init->size);
+        size_t location = gen.m_stack_size;
+        std::vector<int> values;
 
-        gen.m_output << "    ;; /not init list\n";
-        gen.m_output << "    mov rsi, " << not_init->size << "\n";
-        std::string loopstart = gen.create_label();
-        gen.m_output << loopstart << ":\n";
-        gen.gen_expr(not_init->init_value);
-        gen.m_output << "    dec rsi\n";
-        gen.m_output << "    jnz " << loopstart << "\n";
-
-        gen.m_stack_size += not_init->size-1; 
+        int size = gen.gen_expr(not_init->size);
+        gen.pop("rax"); // don't need size on the stack
+        for(int i = 0; i < size; i++)
+        {
+          int val = gen.gen_expr(not_init->init_value);
+          values.push_back(val);
+        }
+        gen.m_vars.emplace_back(ID, location, values, true);
       }
     };
 
@@ -352,8 +377,10 @@ public:
           std::cerr << "Identifier already exists: `" << stmt_id->ID.value.value() << "`" << std::endl;
           exit(EXIT_FAILURE);
         }
-        gen.m_vars.emplace_back(stmt_id->ID.value.value(), gen.m_stack_size);
-        gen.gen_expr(stmt_id->expr);
+        size_t location = gen.m_stack_size;
+        int val = gen.gen_expr(stmt_id->expr);
+        std::vector<int> values = {val};
+        gen.m_vars.emplace_back(stmt_id->ID.value.value(), location, values, false);
       }
       void operator()(const NodeStmtSetList *list) const
       {
@@ -380,9 +407,16 @@ public:
           std::cerr << "Resetting an undeclared identifier: `" << stmt_id->ID.value.value() << "`" << std::endl;
           exit(EXIT_FAILURE);
         }
-        gen.gen_expr(stmt_id->expr);
+        if (it->is_list)
+        {
+          std::cerr << "Resetting a list variable without an index" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+
+        int val = gen.gen_expr(stmt_id->expr);
         gen.pop("rax");
         gen.m_output << "    mov [rsp + " << (gen.m_stack_size - it->stack_loc - 1) * 8 << "], rax\n";
+        it->values[0] = val;
       }
       void operator()(const NodeStmtResetArrID *arr_id) const
       {
@@ -394,15 +428,21 @@ public:
           std::cerr << "Resetting an undeclared identifier: `" << arr_id->ArrID.value.value() << "`" << std::endl;
           exit(EXIT_FAILURE);
         }
-        if (it->size == 0)
+        if (!it->is_list)
         {
-          std::cerr << "Trying to use index on non-list variable" << std::endl;
+          std::cerr << "Resetting a non-list variable with an index" << std::endl;
           exit(EXIT_FAILURE);
         }
 
         gen.m_output << "    ;; /array location\n";
-        gen.gen_expr(arr_id->expr);
-        gen.gen_expr(arr_id->index);
+        int expr = gen.gen_expr(arr_id->expr);
+        int index = gen.gen_expr(arr_id->index);
+
+        if(index >= it->values.size() || index < 0)
+        {
+          std::cerr << "Accessed out of bounds index `" << index << "` for list size `" << it->values.size()<< "`" << std::endl;
+          exit(EXIT_FAILURE);
+        }
 
         gen.m_output << "    mov rcx, rsp\n";
         gen.m_output << "    add rcx, " << (gen.m_stack_size - (*it).stack_loc - 1) * 8 << "\n";
@@ -413,6 +453,7 @@ public:
         gen.pop("rax"); // pop value
 
         gen.m_output << "    mov [rcx], rax\n";
+        it->values[index] = expr;
       }
     };
 
@@ -433,7 +474,6 @@ public:
         gen.m_output << "    mov rax, 60  ; Syscall number 60 = exit\n";
         gen.pop("rdi");
         gen.m_output << "    syscall\n";
-
       }
       /* GENERATE -> print() */
       void operator()(const NodeStmtPrint *stmt_print) const
@@ -552,6 +592,12 @@ public:
     // std::cout << "please count: " << m_please_count << "\n";
     // std::cout << "total stmts: " << totalstmts << "\n";
 
+    for(Var var : m_vars)
+    {
+      for(int i = 0; i < var.values.size(); i++)
+          std::cout << var.name << " = " << var.values[i] << " at " << var.stack_loc << " + " << i << "\n";
+    }
+    m_output << "    ;; /end\n\n";
     m_output << "    mov rax, 60  ; Syscall number 60 = exit\n";
     m_output << "    xor rdi, rdi ; End program with 0\n";
     m_output << "    syscall";
@@ -627,21 +673,24 @@ private:
   {
     std::string name;
     size_t stack_loc;
-    size_t size;
+    std::vector<int> values;
+    bool is_list;
   };
 
-
+  /* please values */
   float m_please_count = 0;
   float m_please_stmt = 0;
   float m_stmt_count = 0;
-  
   float m_max_please;
   float m_min_please;
+
+  /* program stats */
   const NodeProgram m_program;
   std::stringstream m_output;
   size_t m_stack_size = 0;
   int m_label_count = 0;
 
+  /* program variables */
   std::vector<Var> m_vars {};
   std::vector<size_t> m_scopes;
 };

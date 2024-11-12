@@ -100,12 +100,9 @@ public:
     else if(auto bracket = try_consume(TokenType::LBRACKET)) {
       std::vector<NodeExpr*> elements;
 
-      /* hack :( */
-      auto size = try_consume(TokenType::INT_LIT);
-      if (!size.has_value())
-        error_expected("integer literal (not an expression) for size");
-
-      size_t list_size = std::stoi(size.value().value.value());
+      auto list_size = parse_expr();
+      if (!list_size.has_value())
+        error_expected("expression for the size of the list");
 
       /* set initial value to 0 */
       Token init_token = {TokenType::INT_LIT, bracket.value().line, "0"};
@@ -122,7 +119,7 @@ public:
 
       try_consume_err(TokenType::RBRACKET);
 
-      auto not_init = m_allocator.emplace<NodeListNotInit>(list_size, init_value.value());
+      auto not_init = m_allocator.emplace<NodeListNotInit>(list_size.value(), init_value.value());
       auto list = m_allocator.emplace<NodeList>(not_init);
       return list;
     }
