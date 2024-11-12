@@ -18,6 +18,9 @@ test:
 
 # Install target
 install:
+	cd build
+	cmake ..
+	cd ..
 	cmake --build build/
 	cp $(BUILD_DIR)/$(OUTPUT_BINARY) $(LOCAL_BIN)/please
 	chmod +x $(LOCAL_BIN)/please

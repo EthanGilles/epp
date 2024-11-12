@@ -1,3 +1,0 @@
-/home/exan/cpp/epp/build/CMakeFiles/please.dir
-/home/exan/cpp/epp/build/CMakeFiles/edit_cache.dir
-/home/exan/cpp/epp/build/CMakeFiles/rebuild_cache.dir
