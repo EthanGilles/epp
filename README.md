@@ -23,16 +23,16 @@
 
 ## Project Description
 
-The **Please Compiler** is a compiler for a new programming language, E++, which emphasizes politeness. This project was developed for the COS360: Programming Languages class, 
-where the task was an open ended project, somehow related to programming languages. In E++, politeness is mandatory, and the compiler enforces it by requiring the programmer 
+The **Please Compiler** is a compiler for a new programming language, **PleaseLang**, which emphasizes politeness. This project was developed for the COS360: Programming Languages class, 
+where the task was an open ended project, somehow related to programming languages. In **PleaseLang**, politeness is mandatory, and the compiler enforces it by requiring the programmer 
 to include polite language throughout the code—most importantly, the word "please".
 
 The idea behind the project is to encourage a unique syntax style that introduces humor and creativity into programming while exploring the process of language design and compiler construction.
 
 ## Features
 
-- **Syntax Enforcement**: The compiler will only compile code if it detects the right amount of polite language, including "please" or "PLEASE".
-- **Basic Language Constructs**: Supports fundamental operations, including variable declarations, basic arithmetic, conditional statements, loops and print statements.
+- **Syntax Enforcement**: The compiler will only compile code if it detects the right amount of polite language, including "please", "PLEASE", or the emoji "🙏".
+- **Basic Language Constructs**: Supports fundamental operations, including variable declarations, basic arithmetic, conditional statements, loops, lists and print statements.
 - **Error Handling**: Provides 'user-friendly' error messages when polite language is missing or when syntax rules are broken.
 - **Tokenization and Parsing**: Uses custom-built tokenization and parsing to identify keywords, operators, and polite phrases.
 - **Code Generation**: Outputs runnable x86 assembly instructions which it will then assemble using the NASM assembler and link object files with the GNU linker to create an executable.
@@ -55,11 +55,11 @@ The idea behind the project is to encourage a unique syntax style that introduce
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/EthanGilles/epp.git
+    git clone https://github.com/EthanGilles/pleaselang.git
     ```
 2. Enter the repository directory:
     ```bash 
-    cd epp
+    cd pleaselang
     ```
 3. Install the compiler:
     ```bash 
@@ -72,7 +72,7 @@ The idea behind the project is to encourage a unique syntax style that introduce
 
 You should get the following output: 
 ``` 
-E++ is installed!
+PleaseLang is installed!
 ``` 
 Along with two new files in the current directory: `hello.asm` and `hello`.
 
@@ -86,7 +86,7 @@ please file.epp
 
 ## Example Code 
 
-The following code is an example of a valid 'Hello World!' E++ program:
+The following code is an example of a valid 'Hello World!' PleaseLang program:
 ```
 /* Hello world! */
 please printn('H', 'e', 'l', 'l', 'o', space, 'W', 'o', 'r', 'l', 'd', '!');
