@@ -23,6 +23,8 @@
 
 ## Project Description
 
+<img src="https://github.com/EthanGilles/Portfolio/blob/bfd5dd556865539b840b7b9e7d84139b3a8b3f55/src/assets/projects/compiler.png" alt="Logo" width="600"/>
+
 The **Please Compiler** is a compiler for a new programming language, **PleaseLang**, which emphasizes politeness. This project was developed for the COS360: Programming Languages class, 
 where the task was an open ended project, somehow related to programming languages. In **PleaseLang**, politeness is mandatory, and the compiler enforces it by requiring the programmer 
 to include polite language throughout the code—most importantly, the word "please".
