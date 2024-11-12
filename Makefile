@@ -18,7 +18,7 @@ test:
 
 # Install target
 install:
-	cd build
+	mkdir build && cd build
 	cmake ..
 	cd ..
 	cmake --build build/
