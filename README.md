@@ -1,6 +1,6 @@
 # 🙏The Please Compiler🙏
 
-<img src="https://github.com/EthanGilles/epp/blob/6efea11a5dcf35c67199a1388275c0d7e5fee52e/docs/logo.png" alt="Logo" width="200"/>
+<img src="https://github.com/EthanGilles/pleaselang/blob/7a304416626c7f6f290c7f19873cd371ba574546/docs/logo.png" alt="Logo" width="200"/>
 
 ### COS360: Final Project
 
@@ -36,7 +36,7 @@ The idea behind the project is to encourage a unique syntax style that introduce
 - **Error Handling**: Provides 'user-friendly' error messages when polite language is missing or when syntax rules are broken.
 - **Tokenization and Parsing**: Uses custom-built tokenization and parsing to identify keywords, operators, and polite phrases.
 - **Code Generation**: Outputs runnable x86 assembly instructions which it will then assemble using the NASM assembler and link object files with the GNU linker to create an executable.
-- **Grammar Documentation**: LaTeX/pdf documentation for the grammar of the E++ language, providing production rules and syntax-related information.
+- **Grammar Documentation**: LaTeX/pdf documentation for the grammar of the PleaseLang language, providing production rules and syntax-related information.
 
 ## Getting Started
 
@@ -50,7 +50,7 @@ The idea behind the project is to encourage a unique syntax style that introduce
     ```bash
     sudo apt install gcc cmake nasm
     ```
-
+test
 ### Installation
 
 1. Clone the repository:
@@ -74,13 +74,13 @@ You should get the following output:
 ``` 
 PleaseLang is installed!
 ``` 
-Along with two new files in the current directory: `hello.asm` and `hello`.
+Along with two new files in the current directory: `test.asm` and `test`.
 
 ### Usage
 
-To compile an E++ source code file ending in .epp, use:
+To compile a PleaseLang source code file ending in .pls, use:
 ```bash 
-please file.epp
+please file.pls
 ```
 
 
