@@ -592,11 +592,6 @@ public:
     // std::cout << "please count: " << m_please_count << "\n";
     // std::cout << "total stmts: " << totalstmts << "\n";
 
-    for(Var var : m_vars)
-    {
-      for(int i = 0; i < var.values.size(); i++)
-          std::cout << var.name << " = " << var.values[i] << " at " << var.stack_loc << " + " << i << "\n";
-    }
     m_output << "    ;; /end\n\n";
     m_output << "    mov rax, 60  ; Syscall number 60 = exit\n";
     m_output << "    xor rdi, rdi ; End program with 0\n";

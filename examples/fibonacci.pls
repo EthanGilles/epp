@@ -1,4 +1,5 @@
 /* fibonacci sequence */
+PLEASE 
 🙏 set nums = {1, 0, 0};
 🙏 set limit = 10;
 
