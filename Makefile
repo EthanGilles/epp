@@ -29,7 +29,7 @@ install-test:
 	./test
 
 lines-project:
-	./build/count-lines.sh src/main.cpp src/include/*
+	./count-lines.sh src/main.cpp src/include/*
 
 lines-assembly:
-	./build/count-lines.sh out.asm
+	./count-lines.sh out.asm
