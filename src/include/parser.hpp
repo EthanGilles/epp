@@ -1,4 +1,6 @@
 #pragma once 
+#include <cassert>
+#include <cstdio>
 #include <string>
 #include <cstdlib>
 #include <iostream>
@@ -121,6 +123,24 @@ public:
 
       auto not_init = m_allocator.emplace<NodeListNotInit>(list_size.value(), init_value.value());
       auto list = m_allocator.emplace<NodeList>(not_init);
+      return list;
+    }
+    else if (auto str = try_consume(TokenType::STRING)) {
+      std::vector<NodeExpr*> elements;
+      std::string string_lit = str.value().value.value();
+      std::cout << string_lit << std::endl;
+
+      for (char c : string_lit) {
+        int ascii_value = static_cast<int>(c);
+        Token init_token = {TokenType::INT_LIT, str.value().line, std::to_string(ascii_value)};
+        auto c_int = m_allocator.emplace<NodeTermIntLit>(init_token);
+        auto c_term = m_allocator.emplace<NodeTerm>(c_int);
+        auto c_expr = m_allocator.emplace<NodeExpr>(c_term);
+        elements.push_back(c_expr);
+      }
+
+      auto pre_init = m_allocator.emplace<NodeListPreInit>(elements);
+      auto list = m_allocator.emplace<NodeList>(pre_init);
       return list;
     }
     return {};

@@ -23,8 +23,10 @@ enum class TokenType {
   ID, // 'x'
   INT_LIT, // '59'
   CHAR, // ''A''
+  STRING, // '"ABC"'
   SEMI, // ';'
   QUOTE, // '''
+  DBQUOTE, // '"'
   LPAREN, // '('
   RPAREN, // ')'
   LCURLY, // '{'
@@ -68,8 +70,28 @@ public:
 
     while (peek().has_value())
     {
+      /* Tokenize string */
+      if (peek().value() == '\"')
+      {
+        consume();
+        while(peek().has_value() && peek().value() != '\"')
+          buffer.push_back(consume());
+        consume();
+
+        printf("str: %s\n", buffer.c_str());
+
+        if (buffer.empty())
+        {
+          std::cerr << "Cannot initialize empty string literal." << std::endl;
+          exit(EXIT_FAILURE);
+        }
+
+        tokens.emplace_back(TokenType::STRING, line_count, buffer);
+        buffer.clear();
+      }
+
       /* Tokenize word */
-      if (std::isalpha(peek().value()))
+      else if (std::isalpha(peek().value()))
       {
         /* Add entire word to the buffer */
         buffer.push_back(consume());

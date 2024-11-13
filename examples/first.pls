@@ -1,4 +1,4 @@
-/* Welcome to Epp! Try compiling the program below and see what happens. */
+/* Welcome to PleaseLang! Try compiling the program below and see what happens. */
 
 set x to 'A';
 

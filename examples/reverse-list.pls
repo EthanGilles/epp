@@ -13,6 +13,7 @@ while (count < length) {
 }
 
 reset count = 0;
+
 while (count < length) {
   reset start[count] = temp[count];
   reset count = count + 1;

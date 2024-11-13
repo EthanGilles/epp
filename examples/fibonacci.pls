@@ -1,7 +1,11 @@
+
 /* fibonacci sequence */
 PLEASE 
 🙏 set nums = {1, 0, 0};
 🙏 set limit = 10;
+
+
+🙏 set expression to (10 * 2 / 5) - 7 * 32 + (6 / 3 + 8) % 10 < 5;
 
 set count = 0;
 while (count < limit) {

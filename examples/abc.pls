@@ -1,14 +1,16 @@
-🙏 set x = 0; 
+
+/* prints the alphabet */
+🙏 set pos = 0; 
 
 🙏 while (x < 26) {
-  print('A' + x, space); // 65 = A
-  reset x = x + 1;
+  print('A' + pos, space); // 65 = A
+  reset pos = pos + 1;
 }
 
 set Z to 26;
 printn();
 
-if (x == Z) {
+if (pos == Z) {
   🙏 printn('A', 'B', 'C', 's', '!');
   please goodbye(0); // We should be at 'Z'!
 }
