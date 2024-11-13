@@ -1,4 +1,6 @@
-#pragma once 
+#pragma once
+#include <cstdlib>
+#include <ctime>
 #include <variant>
 #include <ranges>
 #include "grammar.hpp"
@@ -583,9 +585,9 @@ public:
     float polite = m_please_count / totalstmts;
 
     if (polite < m_min_please) 
-      polite_msg("You haven't been polite enough for the compiler.");
+      not_polite_msg();
     else if (polite > m_max_please) 
-      polite_msg("You've been way too polite for the compiler.");
+      too_polite_msg();
     
     // For testing please counts.
     // std::cout << "please ratio: " << polite << "\n";
@@ -602,6 +604,62 @@ public:
 
   void polite_msg(const std::string &msg) 
   {
+    m_output.str("");
+    m_output << "section .data\n    msg db \"" << msg << "\", 0xA\n";
+    m_output << "    msg_len equ $ - msg\n    ;; /set msg and length\n\n";
+    m_output << "section .text\n    global _start\n\n_start:\n";
+    m_output << "    mov rax, 1\n";
+    m_output << "    mov rdi, 1\n";
+    m_output << "    mov rsi, msg\n";
+    m_output << "    mov rdx, msg_len\n";
+    m_output << "    syscall\n";;
+  }
+
+  void not_polite_msg() 
+  {
+    std::srand(std::time(nullptr));
+    std::vector<std::string> responses = {
+      "Hey, saying 'please' wouldn’t hurt here! 🙏",
+      "Looks like someone's in a rush. Try a 'please' this time.",
+      "Politeness check: failed! Try saying 'please' next time.",
+      "Just one 'please' could make this work, you know?",
+      "No 'please'? Compile with some manners next time. 🙏",
+      "Hold up – did you forget the magic word?",
+      "Try adding a 'please' next time and see if things go smoother, yeah?",
+      "I think you were polite enough! Oh wait, no, you weren't. 🙏",
+      "Respect your compiler! Saying 'please' might get your program to run.",
+      "PLEASE use the magic word next time! 🙏",
+      "You haven't been polite enough for the compiler."
+    };
+    int index = std::rand() % responses.size();
+    std::string msg = responses[index];
+
+    m_output.str("");
+    m_output << "section .data\n    msg db \"" << msg << "\", 0xA\n";
+    m_output << "    msg_len equ $ - msg\n    ;; /set msg and length\n\n";
+    m_output << "section .text\n    global _start\n\n_start:\n";
+    m_output << "    mov rax, 1\n";
+    m_output << "    mov rdi, 1\n";
+    m_output << "    mov rsi, msg\n";
+    m_output << "    mov rdx, msg_len\n";
+    m_output << "    syscall\n";;
+  }
+
+  void too_polite_msg() 
+  {
+    std::srand(std::time(nullptr));
+    std::vector<std::string> responses = {
+      "Okay, we get it – you're very polite! Tone it down a little.",
+      "Respect for the politeness, but maybe hold back a bit?",
+      "Whoa, I think the compiler might actually blush at this point!",
+      "Alright, no need to butter up the compiler this much.",
+      "We get it - you're really polite. Just tone it down.",
+      "Hmm, that’s a bit much on the ‘please,’ don’t you think?",
+      "You've been far too polite for the compiler.",
+    };
+    int index = std::rand() % responses.size();
+    std::string msg = responses[index];
+
     m_output.str("");
     m_output << "section .data\n    msg db \"" << msg << "\", 0xA\n";
     m_output << "    msg_len equ $ - msg\n    ;; /set msg and length\n\n";
