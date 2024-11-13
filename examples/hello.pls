@@ -1,4 +1,4 @@
 /* Hello world! */
-please printn('H', 'e', 'l', 'l', 'o', space, 'W', 'o', 'r', 'l', 'd', '!');
+please printn("Hello World!");
 
 goodbye(0);

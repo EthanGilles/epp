@@ -24,6 +24,12 @@ install:
 	cp $(BUILD_DIR)/$(OUTPUT_BINARY) $(LOCAL_BIN)/please
 	chmod +x $(LOCAL_BIN)/please
 
+
+reinstall:
+	cmake --build build/
+	cp $(BUILD_DIR)/$(OUTPUT_BINARY) $(LOCAL_BIN)/please
+	chmod +x $(LOCAL_BIN)/please
+
 install-test:
 	please examples/install.pls -o test
 	./test

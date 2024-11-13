@@ -22,6 +22,14 @@ public:
     , m_max_please(max_please)
     , m_min_please(min_please){}
 
+  struct Var
+  {
+    std::string name;
+    size_t stack_loc;
+    std::vector<int> values;
+    bool is_list;
+  };
+
   int gen_term_id(const NodeTermID *term_id)
   {
     struct TermIDVisitor {
@@ -463,6 +471,51 @@ public:
     std::visit(visitor, stmt_reset->variant);
   }
 
+  std::optional<Var> list_check(const NodeExpr *expr)
+  {
+
+    if(std::holds_alternative<NodeTerm*>(expr->variant))
+    {
+      NodeTerm* term = std::get<NodeTerm*>(expr->variant);
+      if(std::holds_alternative<NodeTermID*>(term->variant))
+      {
+        NodeTermID* term_id = std::get<NodeTermID*>(term->variant);
+        if(std::holds_alternative<NodeTermIDLit*>(term_id->variant))
+        {
+          NodeTermIDLit* id_lit = std::get<NodeTermIDLit*>(term_id->variant);
+
+          const auto it = std::ranges::find_if(std::as_const(m_vars), [&](const Var& var) 
+              { return var.name == id_lit->ID.value.value(); });
+          
+          if(it == m_vars.cend())
+          {
+            std::cerr << "Undeclared identifier: " << id_lit->ID.value.value() << std::endl;
+            exit(EXIT_FAILURE);
+          }
+          if(it->is_list)
+          {
+            return *it;
+          }
+        }
+      }
+    }
+    return {};
+  }
+
+  void gen_print_list(const Var& var) 
+  {
+    for(int i = 0; i < var.values.size(); i++)
+    {
+      m_output << "    mov rax, [rsp + " << (m_stack_size - var.stack_loc - 1 - i) * 8 << "]\n";
+      m_output << "    mov [char], al  ;; Store rax in char\n";
+      m_output << "    mov rax, 1\n";
+      m_output << "    mov rdi, 1\n";
+      m_output << "    mov rdx, 1\n";
+      m_output << "    mov rsi, char\n";
+      m_output << "    syscall\n";
+    }
+  }
+
   void gen_stmt(const NodeStmt *stmt) 
   {
     struct StmtVisitor 
@@ -483,14 +536,21 @@ public:
         std::vector args = stmt_print->args;
         gen.m_output << "    ;; /print\n";
         for(NodeExpr *argument : args) {
-          gen.gen_expr(argument);
-          gen.pop("rax");
-          gen.m_output << "    mov [char], al  ;; Store rax in char\n";
-          gen.m_output << "    mov rax, 1\n";
-          gen.m_output << "    mov rdi, 1\n";
-          gen.m_output << "    mov rdx, 1\n";
-          gen.m_output << "    mov rsi, char\n";
-          gen.m_output << "    syscall\n";
+          if(auto var = gen.list_check(argument))
+          {
+            gen.gen_print_list(var.value());
+          }
+          else
+          {
+            gen.gen_expr(argument);
+            gen.pop("rax");
+            gen.m_output << "    mov [char], al  ;; Store rax in char\n";
+            gen.m_output << "    mov rax, 1\n";
+            gen.m_output << "    mov rdi, 1\n";
+            gen.m_output << "    mov rdx, 1\n";
+            gen.m_output << "    mov rsi, char\n";
+            gen.m_output << "    syscall\n";
+          }
         }
       }
 
@@ -722,13 +782,7 @@ private:
     return "label" + std::to_string(m_label_count++);
   }
 
-  struct Var
-  {
-    std::string name;
-    size_t stack_loc;
-    std::vector<int> values;
-    bool is_list;
-  };
+
 
   /* please values */
   float m_please_count = 0;

@@ -78,7 +78,6 @@ public:
           buffer.push_back(consume());
         consume();
 
-        printf("str: %s\n", buffer.c_str());
 
         if (buffer.empty())
         {

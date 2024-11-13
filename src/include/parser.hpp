@@ -128,7 +128,6 @@ public:
     else if (auto str = try_consume(TokenType::STRING)) {
       std::vector<NodeExpr*> elements;
       std::string string_lit = str.value().value.value();
-      std::cout << string_lit << std::endl;
 
       for (char c : string_lit) {
         int ascii_value = static_cast<int>(c);
@@ -374,6 +373,27 @@ public:
       {
         if(auto expr = parse_expr())
           args.push_back(expr.value());
+        else if (auto list = parse_list())
+        {
+          /* Variant of not initialized or initialized */
+          struct ListVisitor {
+            Parser &p;
+            std::vector<NodeExpr*> args;
+
+            std::vector<NodeExpr*> operator()(NodeListPreInit* prelist) {
+              for(auto expr : prelist->elements)
+                args.push_back(expr);
+              return args;
+            }
+            std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
+              p.error_invalid("list - trying to print uninitialized list");
+              return {};
+            }
+          };
+
+          ListVisitor lv {.p = *this, .args = args};
+          args = std::visit(lv, list.value()->variant);
+        }
         else
           error_expected("expression");
 
@@ -405,7 +425,27 @@ public:
       {
         if(auto expr = parse_expr())
           args.push_back(expr.value());
-        // OK to be empty.
+        else if (auto list = parse_list())
+        {
+          /* Variant of not initialized or initialized */
+          struct ListVisitor {
+            Parser &p;
+            std::vector<NodeExpr*> args;
+
+            std::vector<NodeExpr*> operator()(NodeListPreInit* prelist) {
+              for(auto expr : prelist->elements)
+                args.push_back(expr);
+              return args;
+            }
+            std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
+              p.error_invalid("list - trying to print uninitialized list");
+              return {};
+            }
+          };
+
+          ListVisitor lv {.p = *this, .args = args};
+          args = std::visit(lv, list.value()->variant);
+        }
 
         if(peek().has_value() && peek().value().type == TokenType::COMMA)
           consume();

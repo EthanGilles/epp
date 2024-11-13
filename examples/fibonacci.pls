@@ -17,10 +17,10 @@ while (count < limit) {
 
 // 10th fibonacci number is 55
 if (nums[2] == 55) {
-  please printn('p', 'a', 's', 's');
+  please printn("pass");
 }
 else {
-  please printn('f', 'a', 'i', 'l');
+  please printn("fail");
 }
 
 goodbye(0);
