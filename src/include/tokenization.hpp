@@ -12,6 +12,7 @@ enum class TokenType {
   GOODBYE, // 'goodbye'
   PRINT, // 'print'
   PRINTNL, // 'print'
+  TO_STR, // 'str'
   SET, // 'set'
   RESET, // 'reset'
   WHILE, // 'while'
@@ -23,8 +24,10 @@ enum class TokenType {
   ID, // 'x'
   INT_LIT, // '59'
   CHAR, // ''A''
+  STRING, // '"ABC"'
   SEMI, // ';'
   QUOTE, // '''
+  DBQUOTE, // '"'
   LPAREN, // '('
   RPAREN, // ')'
   LCURLY, // '{'
@@ -68,12 +71,31 @@ public:
 
     while (peek().has_value())
     {
+      /* Tokenize string */
+      if (peek().value() == '\"')
+      {
+        consume();
+        while(peek().has_value() && peek().value() != '\"')
+          buffer.push_back(consume());
+        consume();
+
+
+        if (buffer.empty())
+        {
+          std::cerr << "Cannot initialize empty string literal." << std::endl;
+          exit(EXIT_FAILURE);
+        }
+
+        tokens.emplace_back(TokenType::STRING, line_count, buffer);
+        buffer.clear();
+      }
+
       /* Tokenize word */
-      if (std::isalpha(peek().value()))
+      else if (std::isalpha(peek().value()))
       {
         /* Add entire word to the buffer */
         buffer.push_back(consume());
-        while (peek().has_value() && std::isalnum(peek().value()))
+        while (peek().has_value() && (std::isalnum(peek().value()) || peek().value() == '_'))
           buffer.push_back(consume());
 
         auto keyword = keywordMap.find(buffer);
@@ -279,6 +301,7 @@ private:
       {"while", TokenType::WHILE},
       {"print", TokenType::PRINT},
       {"printn", TokenType::PRINTNL},
+      {"str", TokenType::TO_STR},
       {"set", TokenType::SET},
       {"reset", TokenType::RESET},
       {"to", TokenType::EQUALS},

@@ -1,4 +1,6 @@
 #pragma once 
+#include <cassert>
+#include <cstdio>
 #include <string>
 #include <cstdlib>
 #include <iostream>
@@ -15,7 +17,7 @@ public:
     : m_tokens(std::move(tokens))
     , m_allocator(1024 * 1024 * 4)  {} // 4MB 
 
-  /* TERM -> ID | INT_LIT | (EXPR) */
+  /* TERM -> ID | INT_LIT | (EXPR) | CHAR*/
   std::optional<NodeTerm*> parse_term()
   {
     if (auto int_lit = try_consume(TokenType::INT_LIT))
@@ -90,6 +92,9 @@ public:
           consume();
           break;
         }
+        else {
+          error_expected("Closing brace");
+        }
       }
 
       auto pre_init = m_allocator.emplace<NodeListPreInit>(elements);
@@ -122,6 +127,32 @@ public:
       auto not_init = m_allocator.emplace<NodeListNotInit>(list_size.value(), init_value.value());
       auto list = m_allocator.emplace<NodeList>(not_init);
       return list;
+    }
+    else if (auto str = try_consume(TokenType::STRING)) {
+      std::vector<NodeExpr*> elements;
+      std::string string_lit = str.value().value.value();
+
+      for (char c : string_lit) {
+        int ascii_value = static_cast<int>(c);
+        Token init_token = {TokenType::INT_LIT, str.value().line, std::to_string(ascii_value)};
+        auto c_int = m_allocator.emplace<NodeTermIntLit>(init_token);
+        auto c_term = m_allocator.emplace<NodeTerm>(c_int);
+        auto c_expr = m_allocator.emplace<NodeExpr>(c_term);
+        elements.push_back(c_expr);
+      }
+
+      auto pre_init = m_allocator.emplace<NodeListPreInit>(elements);
+      auto list = m_allocator.emplace<NodeList>(pre_init);
+      return list;
+    }
+    else if (auto to_string = try_consume(TokenType::TO_STR))
+    {
+      if (auto expr = parse_expr())
+      {
+        auto not_init = m_allocator.emplace<NodeListNotInit>(nullptr, expr.value());
+        auto list = m_allocator.emplace<NodeList>(not_init);
+        return list;
+      }
     }
     return {};
   }
@@ -354,16 +385,36 @@ public:
       {
         if(auto expr = parse_expr())
           args.push_back(expr.value());
-        else
-          error_expected("expression");
+        else if (auto list = parse_list())
+        {
+          /* Variant of not initialized or initialized */
+          struct ListVisitor {
+            Parser &p;
+            std::vector<NodeExpr*> args;
 
-        if(peek().has_value() && peek().value().type == TokenType::COMMA)
+            std::vector<NodeExpr*> operator()(NodeListPreInit* prelist) {
+              for(auto expr : prelist->elements)
+                args.push_back(expr);
+              return args;
+            }
+            std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
+              p.error_invalid("list - trying to print uninitialized list");
+              return {};
+            }
+          };
+
+          ListVisitor lv {.p = *this, .args = args};
+          args = std::visit(lv, list.value()->variant);
+        }
+        else if(peek().has_value() && peek().value().type == TokenType::COMMA)
           consume();
         else if (peek().has_value() && peek().value().type == TokenType::RPAREN)
         {
           consume();
           break;
         }
+        else 
+          error_expected("Closing parenthesis");
       }
 
       try_consume_err(TokenType::SEMI);
@@ -385,7 +436,27 @@ public:
       {
         if(auto expr = parse_expr())
           args.push_back(expr.value());
-        // OK to be empty.
+        else if (auto list = parse_list())
+        {
+          /* Variant of not initialized or initialized */
+          struct ListVisitor {
+            Parser &p;
+            std::vector<NodeExpr*> args;
+
+            std::vector<NodeExpr*> operator()(NodeListPreInit* prelist) {
+              for(auto expr : prelist->elements)
+                args.push_back(expr);
+              return args;
+            }
+            std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
+              p.error_invalid("list - trying to print uninitialized list");
+              return {};
+            }
+          };
+
+          ListVisitor lv {.p = *this, .args = args};
+          args = std::visit(lv, list.value()->variant);
+        }
 
         if(peek().has_value() && peek().value().type == TokenType::COMMA)
           consume();

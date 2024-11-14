@@ -1,4 +1,6 @@
-#pragma once 
+#pragma once
+#include <cstdlib>
+#include <ctime>
 #include <variant>
 #include <ranges>
 #include "grammar.hpp"
@@ -19,6 +21,14 @@ public:
     : m_program(std::move(root))
     , m_max_please(max_please)
     , m_min_please(min_please){}
+
+  struct Var
+  {
+    std::string name;
+    size_t stack_loc;
+    std::vector<int> values;
+    bool is_list;
+  };
 
   int gen_term_id(const NodeTermID *term_id)
   {
@@ -332,14 +342,33 @@ public:
         size_t location = gen.m_stack_size;
         std::vector<int> values;
 
-        int size = gen.gen_expr(not_init->size);
-        gen.pop("rax"); // don't need size on the stack
-        for(int i = 0; i < size; i++)
+        if (not_init->size != nullptr)
         {
-          int val = gen.gen_expr(not_init->init_value);
-          values.push_back(val);
+
+
+          int size = gen.gen_expr(not_init->size);
+          gen.pop("rax"); // don't need size on the stack
+          for(int i = 0; i < size; i++)
+          {
+            int val = gen.gen_expr(not_init->init_value);
+            values.push_back(val);
+          }
+          gen.m_vars.emplace_back(ID, location, values, true);
         }
-        gen.m_vars.emplace_back(ID, location, values, true);
+        else 
+        {
+          int expr = gen.gen_expr(not_init->init_value);
+          gen.pop("rax"); // don't need actual value of expr on the stack
+          std::string str_expr = std::to_string(expr);
+          for (char digit : str_expr) 
+          {
+            int val = static_cast<int>(digit);
+            gen.m_output << "    mov rax, " << val << "\n";
+            gen.push("rax");
+            values.push_back(val);
+          }
+          gen.m_vars.emplace_back(ID, location, values, true);
+        }
       }
     };
 
@@ -461,6 +490,51 @@ public:
     std::visit(visitor, stmt_reset->variant);
   }
 
+  std::optional<Var> list_check(const NodeExpr *expr)
+  {
+
+    if(std::holds_alternative<NodeTerm*>(expr->variant))
+    {
+      NodeTerm* term = std::get<NodeTerm*>(expr->variant);
+      if(std::holds_alternative<NodeTermID*>(term->variant))
+      {
+        NodeTermID* term_id = std::get<NodeTermID*>(term->variant);
+        if(std::holds_alternative<NodeTermIDLit*>(term_id->variant))
+        {
+          NodeTermIDLit* id_lit = std::get<NodeTermIDLit*>(term_id->variant);
+
+          const auto it = std::ranges::find_if(std::as_const(m_vars), [&](const Var& var) 
+              { return var.name == id_lit->ID.value.value(); });
+          
+          if(it == m_vars.cend())
+          {
+            std::cerr << "Undeclared identifier: " << id_lit->ID.value.value() << std::endl;
+            exit(EXIT_FAILURE);
+          }
+          if(it->is_list)
+          {
+            return *it;
+          }
+        }
+      }
+    }
+    return {};
+  }
+
+  void gen_print_list(const Var& var) 
+  {
+    for(int i = 0; i < var.values.size(); i++)
+    {
+      m_output << "    mov rax, [rsp + " << (m_stack_size - var.stack_loc - 1 - i) * 8 << "]\n";
+      m_output << "    mov [char], al  ;; Store rax in char\n";
+      m_output << "    mov rax, 1\n";
+      m_output << "    mov rdi, 1\n";
+      m_output << "    mov rdx, 1\n";
+      m_output << "    mov rsi, char\n";
+      m_output << "    syscall\n";
+    }
+  }
+
   void gen_stmt(const NodeStmt *stmt) 
   {
     struct StmtVisitor 
@@ -481,14 +555,21 @@ public:
         std::vector args = stmt_print->args;
         gen.m_output << "    ;; /print\n";
         for(NodeExpr *argument : args) {
-          gen.gen_expr(argument);
-          gen.pop("rax");
-          gen.m_output << "    mov [char], al  ;; Store rax in char\n";
-          gen.m_output << "    mov rax, 1\n";
-          gen.m_output << "    mov rdi, 1\n";
-          gen.m_output << "    mov rdx, 1\n";
-          gen.m_output << "    mov rsi, char\n";
-          gen.m_output << "    syscall\n";
+          if(auto var = gen.list_check(argument))
+          {
+            gen.gen_print_list(var.value());
+          }
+          else
+          {
+            gen.gen_expr(argument);
+            gen.pop("rax");
+            gen.m_output << "    mov [char], al  ;; Store rax in char\n";
+            gen.m_output << "    mov rax, 1\n";
+            gen.m_output << "    mov rdi, 1\n";
+            gen.m_output << "    mov rdx, 1\n";
+            gen.m_output << "    mov rsi, char\n";
+            gen.m_output << "    syscall\n";
+          }
         }
       }
 
@@ -540,16 +621,23 @@ public:
         const std::string start = gen.create_label();
         const std::string end = gen.create_label();
 
-        gen.m_output << start << ":\n";
+        // gen.m_output << start << ":\n";
         //loop
-        gen.gen_expr(stmt_while->expr);
+        int val = gen.gen_expr(stmt_while->expr);
+        while(val != 0) 
+        {
+          gen.pop("rax");
+          gen.gen_scope(stmt_while->scope);
+          gen.m_stmt_count -= stmt_while->scope->stmts.size();
+          val = gen.gen_expr(stmt_while->expr);
+        }
         gen.pop("rax");
-        gen.m_output << "    test rax, rax\n";
-        gen.m_output << "    jz " << end << "\n";
-        gen.gen_scope(stmt_while->scope);
-        gen.m_output << "    jmp " << start << "\n";
+        gen.m_stmt_count += stmt_while->scope->stmts.size();
+        // gen.m_output << "    test rax, rax\n";
+        // gen.m_output << "    jz " << end << "\n";
+        // gen.m_output << "    jmp " << start << "\n";
         // end 
-        gen.m_output << end << ":\n";
+        // gen.m_output << end << ":\n";
         gen.m_output << "    ;; /while\n";
       }
       /* GENERATE -> please or PLEASE */
@@ -583,9 +671,9 @@ public:
     float polite = m_please_count / totalstmts;
 
     if (polite < m_min_please) 
-      polite_msg("You haven't been polite enough for the compiler.");
+      not_polite_msg();
     else if (polite > m_max_please) 
-      polite_msg("You've been way too polite for the compiler.");
+      too_polite_msg();
     
     // For testing please counts.
     // std::cout << "please ratio: " << polite << "\n";
@@ -602,6 +690,62 @@ public:
 
   void polite_msg(const std::string &msg) 
   {
+    m_output.str("");
+    m_output << "section .data\n    msg db \"" << msg << "\", 0xA\n";
+    m_output << "    msg_len equ $ - msg\n    ;; /set msg and length\n\n";
+    m_output << "section .text\n    global _start\n\n_start:\n";
+    m_output << "    mov rax, 1\n";
+    m_output << "    mov rdi, 1\n";
+    m_output << "    mov rsi, msg\n";
+    m_output << "    mov rdx, msg_len\n";
+    m_output << "    syscall\n";;
+  }
+
+  void not_polite_msg() 
+  {
+    std::srand(std::time(nullptr));
+    std::vector<std::string> responses = {
+      "Hey, saying 'please' wouldn’t hurt here! 🙏",
+      "Looks like someone's in a rush. Try a 'please' this time.",
+      "Politeness check: failed! Try saying 'please' next time.",
+      "Just one 'please' could make this work, you know?",
+      "No 'please'? Compile with some manners next time. 🙏",
+      "Hold up – did you forget the magic word?",
+      "Try adding a 'please' next time and see if things go smoother, yeah?",
+      "I think you were polite enough! Oh wait, no, you weren't. 🙏",
+      "Respect your compiler! Saying 'please' might get your program to run.",
+      "PLEASE use the magic word next time! 🙏",
+      "You haven't been polite enough for the compiler."
+    };
+    int index = std::rand() % responses.size();
+    std::string msg = responses[index];
+
+    m_output.str("");
+    m_output << "section .data\n    msg db \"" << msg << "\", 0xA\n";
+    m_output << "    msg_len equ $ - msg\n    ;; /set msg and length\n\n";
+    m_output << "section .text\n    global _start\n\n_start:\n";
+    m_output << "    mov rax, 1\n";
+    m_output << "    mov rdi, 1\n";
+    m_output << "    mov rsi, msg\n";
+    m_output << "    mov rdx, msg_len\n";
+    m_output << "    syscall\n";;
+  }
+
+  void too_polite_msg() 
+  {
+    std::srand(std::time(nullptr));
+    std::vector<std::string> responses = {
+      "Okay, we get it – you're very polite! Tone it down a little.",
+      "Respect for the politeness, but maybe hold back a bit?",
+      "Whoa, I think the compiler might actually blush at this point!",
+      "Alright, no need to butter up the compiler this much.",
+      "We get it - you're really polite. Just tone it down.",
+      "Hmm, that’s a bit much on the ‘please,’ don’t you think?",
+      "You've been far too polite for the compiler.",
+    };
+    int index = std::rand() % responses.size();
+    std::string msg = responses[index];
+
     m_output.str("");
     m_output << "section .data\n    msg db \"" << msg << "\", 0xA\n";
     m_output << "    msg_len equ $ - msg\n    ;; /set msg and length\n\n";
@@ -664,13 +808,7 @@ private:
     return "label" + std::to_string(m_label_count++);
   }
 
-  struct Var
-  {
-    std::string name;
-    size_t stack_loc;
-    std::vector<int> values;
-    bool is_list;
-  };
+
 
   /* please values */
   float m_please_count = 0;

@@ -1,7 +1,10 @@
+
 /* fibonacci sequence */
 PLEASE 
 🙏 set nums = {1, 0, 0};
 🙏 set limit = 10;
+
+
 
 set count = 0;
 while (count < limit) {
@@ -13,10 +16,12 @@ while (count < limit) {
 
 // 10th fibonacci number is 55
 if (nums[2] == 55) {
-  please printn('p', 'a', 's', 's');
+  set str_limit = str(limit);
+  set str_fib = str(nums[2]);
+  please printn("The ", str_limit, "th fibonacci number is ", str_fib);
 }
 else {
-  please printn('f', 'a', 'i', 'l');
+  please printn("fail");
 }
 
 goodbye(0);

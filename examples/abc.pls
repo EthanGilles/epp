@@ -1,15 +1,17 @@
-🙏 set x = 0; 
+/* prints the alphabet */
+🙏 set pos = 0; 
 
-🙏 while (x < 26) {
-  print('A' + x, space); // 65 = A
-  reset x = x + 1;
+🙏 while (pos < 26) {
+  print('A' + pos, space); // 65 = A
+  reset pos = pos + 1;
 }
 
 set Z to 26;
 printn();
 
-if (x == Z) {
-  🙏 printn('A', 'B', 'C', 's', '!');
+if (pos == Z) {
+  set total = str(Z);
+  🙏 printn("A-Z is ", total, " characters long.");
   please goodbye(0); // We should be at 'Z'!
 }
 else {

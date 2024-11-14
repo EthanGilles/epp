@@ -5,6 +5,7 @@ set start = {'0', '2', '4', '6', '8'};
 set length = 5;
 
 set temp = [5]; 
+printn("Before: ", start);
 
 set count = 0;
 while (count < length) {
@@ -18,11 +19,6 @@ while (count < length) {
   reset count = count + 1;
 }
 
-reset count = 0;
-while (count < length) {
-  print(start[count], space);
-  reset count = count + 1;
-}
-printn();
+printn("Reversed: ", start);
 
 goodbye(0);
