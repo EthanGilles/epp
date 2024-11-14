@@ -14,6 +14,7 @@ while (count < limit) {
   reset count = count + 1;
 }
 
+
 // 10th fibonacci number is 55
 if (nums[2] == 55) {
   set str_limit = str(limit);
