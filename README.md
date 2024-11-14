@@ -72,8 +72,10 @@ test
     make install-test
     ```
 
-You should get the following output: 
-``` 
+Testing the installation tests the local compiler binary on a .pls file then runs the executable, which should give the following output: 
+```
+please examples/install.pls -o test
+./test
 PleaseLang is installed!
 ``` 
 Along with two new files in the current directory: `test.asm` and `test`.
