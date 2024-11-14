@@ -71,8 +71,6 @@ int main(int argc, char *argv[])
     exit (EXIT_FAILURE);
   }
 
-  // define custom please values here if desired.
-
   {
     Generator generator(program.value(), DEFAULT_MAX_PR, DEFAULT_MIN_PR);
     std::fstream file( (outputFilename + ".asm").c_str(), std::ios::out);

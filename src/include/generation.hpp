@@ -342,14 +342,33 @@ public:
         size_t location = gen.m_stack_size;
         std::vector<int> values;
 
-        int size = gen.gen_expr(not_init->size);
-        gen.pop("rax"); // don't need size on the stack
-        for(int i = 0; i < size; i++)
+        if (not_init->size != nullptr)
         {
-          int val = gen.gen_expr(not_init->init_value);
-          values.push_back(val);
+
+
+          int size = gen.gen_expr(not_init->size);
+          gen.pop("rax"); // don't need size on the stack
+          for(int i = 0; i < size; i++)
+          {
+            int val = gen.gen_expr(not_init->init_value);
+            values.push_back(val);
+          }
+          gen.m_vars.emplace_back(ID, location, values, true);
         }
-        gen.m_vars.emplace_back(ID, location, values, true);
+        else 
+        {
+          int expr = gen.gen_expr(not_init->init_value);
+          gen.pop("rax"); // don't need actual value of expr on the stack
+          std::string str_expr = std::to_string(expr);
+          for (char digit : str_expr) 
+          {
+            int val = static_cast<int>(digit);
+            gen.m_output << "    mov rax, " << val << "\n";
+            gen.push("rax");
+            values.push_back(val);
+          }
+          gen.m_vars.emplace_back(ID, location, values, true);
+        }
       }
     };
 
@@ -602,16 +621,23 @@ public:
         const std::string start = gen.create_label();
         const std::string end = gen.create_label();
 
-        gen.m_output << start << ":\n";
+        // gen.m_output << start << ":\n";
         //loop
-        gen.gen_expr(stmt_while->expr);
+        int val = gen.gen_expr(stmt_while->expr);
+        while(val != 0) 
+        {
+          gen.pop("rax");
+          gen.gen_scope(stmt_while->scope);
+          gen.m_stmt_count -= stmt_while->scope->stmts.size();
+          val = gen.gen_expr(stmt_while->expr);
+        }
         gen.pop("rax");
-        gen.m_output << "    test rax, rax\n";
-        gen.m_output << "    jz " << end << "\n";
-        gen.gen_scope(stmt_while->scope);
-        gen.m_output << "    jmp " << start << "\n";
+        gen.m_stmt_count += stmt_while->scope->stmts.size();
+        // gen.m_output << "    test rax, rax\n";
+        // gen.m_output << "    jz " << end << "\n";
+        // gen.m_output << "    jmp " << start << "\n";
         // end 
-        gen.m_output << end << ":\n";
+        // gen.m_output << end << ":\n";
         gen.m_output << "    ;; /while\n";
       }
       /* GENERATE -> please or PLEASE */

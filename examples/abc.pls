@@ -1,4 +1,3 @@
-
 /* prints the alphabet */
 🙏 set pos = 0; 
 
@@ -11,7 +10,8 @@ set Z to 26;
 printn();
 
 if (pos == Z) {
-  🙏 printn("ABCs!");
+  set total = str(Z);
+  🙏 printn("A-Z is ", total, " characters long.");
   please goodbye(0); // We should be at 'Z'!
 }
 else {

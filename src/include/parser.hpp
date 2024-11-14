@@ -17,7 +17,7 @@ public:
     : m_tokens(std::move(tokens))
     , m_allocator(1024 * 1024 * 4)  {} // 4MB 
 
-  /* TERM -> ID | INT_LIT | (EXPR) */
+  /* TERM -> ID | INT_LIT | (EXPR) | CHAR*/
   std::optional<NodeTerm*> parse_term()
   {
     if (auto int_lit = try_consume(TokenType::INT_LIT))
@@ -92,6 +92,9 @@ public:
           consume();
           break;
         }
+        else {
+          error_expected("Closing brace");
+        }
       }
 
       auto pre_init = m_allocator.emplace<NodeListPreInit>(elements);
@@ -141,6 +144,15 @@ public:
       auto pre_init = m_allocator.emplace<NodeListPreInit>(elements);
       auto list = m_allocator.emplace<NodeList>(pre_init);
       return list;
+    }
+    else if (auto to_string = try_consume(TokenType::TO_STR))
+    {
+      if (auto expr = parse_expr())
+      {
+        auto not_init = m_allocator.emplace<NodeListNotInit>(nullptr, expr.value());
+        auto list = m_allocator.emplace<NodeList>(not_init);
+        return list;
+      }
     }
     return {};
   }
@@ -394,16 +406,15 @@ public:
           ListVisitor lv {.p = *this, .args = args};
           args = std::visit(lv, list.value()->variant);
         }
-        else
-          error_expected("expression");
-
-        if(peek().has_value() && peek().value().type == TokenType::COMMA)
+        else if(peek().has_value() && peek().value().type == TokenType::COMMA)
           consume();
         else if (peek().has_value() && peek().value().type == TokenType::RPAREN)
         {
           consume();
           break;
         }
+        else 
+          error_expected("Closing parenthesis");
       }
 
       try_consume_err(TokenType::SEMI);

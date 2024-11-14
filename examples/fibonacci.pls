@@ -5,7 +5,6 @@ PLEASE
 🙏 set limit = 10;
 
 
-🙏 set expression to (10 * 2 / 5) - 7 * 32 + (6 / 3 + 8) % 10 < 5;
 
 set count = 0;
 while (count < limit) {
@@ -17,7 +16,9 @@ while (count < limit) {
 
 // 10th fibonacci number is 55
 if (nums[2] == 55) {
-  please printn("pass");
+  set str_limit = str(limit);
+  set str_fib = str(nums[2]);
+  please printn("The ", str_limit, "th fibonacci number is ", str_fib);
 }
 else {
   please printn("fail");

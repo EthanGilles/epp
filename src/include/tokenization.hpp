@@ -12,6 +12,7 @@ enum class TokenType {
   GOODBYE, // 'goodbye'
   PRINT, // 'print'
   PRINTNL, // 'print'
+  TO_STR, // 'str'
   SET, // 'set'
   RESET, // 'reset'
   WHILE, // 'while'
@@ -94,7 +95,7 @@ public:
       {
         /* Add entire word to the buffer */
         buffer.push_back(consume());
-        while (peek().has_value() && std::isalnum(peek().value()))
+        while (peek().has_value() && (std::isalnum(peek().value()) || peek().value() == '_'))
           buffer.push_back(consume());
 
         auto keyword = keywordMap.find(buffer);
@@ -300,6 +301,7 @@ private:
       {"while", TokenType::WHILE},
       {"print", TokenType::PRINT},
       {"printn", TokenType::PRINTNL},
+      {"str", TokenType::TO_STR},
       {"set", TokenType::SET},
       {"reset", TokenType::RESET},
       {"to", TokenType::EQUALS},

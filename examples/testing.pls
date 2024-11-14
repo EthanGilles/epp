@@ -1,6 +1,9 @@
 please 
 
-set x = str(1+2);
+set list = {1, 2, 3};
+
+set x = str(list[1] + list[2]);
+please printn(x);
 
 goodbye(0);
 
