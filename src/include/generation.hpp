@@ -114,11 +114,21 @@ public:
       int operator()(const NodeTermID *term_id) const
       {
         return gen.gen_term_id(term_id);
-
       }
       int operator()(const NodeTermParenth *term_parenth) const
       {
         return gen.gen_expr(term_parenth->expr);
+      }
+      int operator()(const NodeTermLen *term_len) const
+      {
+        if(gen.list_check(term_len->length).has_value())
+        {
+          size_t list_size = gen.list_check(term_len->length).value().values.size();
+          gen.m_output << "    mov rax, " << list_size << "\n";
+          gen.push("rax");
+          return list_size;
+        }
+        return gen.gen_expr(term_len->length);
       }
     };
 
@@ -496,7 +506,6 @@ public:
 
   std::optional<Var> list_check(const NodeExpr *expr)
   {
-
     if(std::holds_alternative<NodeTerm*>(expr->variant))
     {
       NodeTerm* term = std::get<NodeTerm*>(expr->variant);

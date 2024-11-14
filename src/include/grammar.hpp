@@ -15,6 +15,7 @@ struct NodeTermParenth {
   NodeExpr *expr;
 };
 
+
 /* Builtin -> EXIT */
 struct NodeStmtExit {
   NodeExpr *expr;
@@ -115,15 +116,7 @@ struct NodeTermID {
 };
 
 
-/* TERM */
-struct NodeTerm {
-  std::variant<NodeTermIntLit*, NodeTermID*, NodeTermParenth* > variant;
-};
 
-/* EXPRESSION */
-struct NodeExpr {
-  std::variant<NodeTerm*, NodeBinExpr*> variant;
-};
 
 /* STMTS */
 
@@ -146,6 +139,19 @@ struct NodeList {
   std::variant<NodeListPreInit*, NodeListNotInit*> variant;
 };
 
+struct NodeTermLen {
+  NodeExpr* length;
+};
+
+/* TERM */
+struct NodeTerm {
+  std::variant<NodeTermIntLit*, NodeTermID*, NodeTermParenth*, NodeTermLen* > variant;
+};
+
+/* EXPRESSION */
+struct NodeExpr {
+  std::variant<NodeTerm*, NodeBinExpr*> variant;
+};
 
 struct NodeStmtSetList {
   Token ArrID;

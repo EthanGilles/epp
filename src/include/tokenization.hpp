@@ -13,6 +13,7 @@ enum class TokenType {
   PRINT, // 'print'
   PRINTNL, // 'print'
   TO_STR, // 'str'
+  LEN, // 'len'
   SET, // 'set'
   RESET, // 'reset'
   WHILE, // 'while'
@@ -302,6 +303,7 @@ private:
       {"print", TokenType::PRINT},
       {"printn", TokenType::PRINTNL},
       {"str", TokenType::TO_STR},
+      {"len", TokenType::LEN},
       {"set", TokenType::SET},
       {"reset", TokenType::RESET},
       {"to", TokenType::EQUALS},
