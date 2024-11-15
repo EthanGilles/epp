@@ -114,11 +114,21 @@ public:
       int operator()(const NodeTermID *term_id) const
       {
         return gen.gen_term_id(term_id);
-
       }
       int operator()(const NodeTermParenth *term_parenth) const
       {
         return gen.gen_expr(term_parenth->expr);
+      }
+      int operator()(const NodeTermLen *term_len) const
+      {
+        if(gen.list_check(term_len->length).has_value())
+        {
+          size_t list_size = gen.list_check(term_len->length).value().values.size();
+          gen.m_output << "    mov rax, " << list_size << "\n";
+          gen.push("rax");
+          return list_size;
+        }
+        return gen.gen_expr(term_len->length);
       }
     };
 
@@ -294,8 +304,12 @@ public:
       void operator()(const NodeIfPredElsif *elsif) const
       {
         gen.m_output << "    ;; /elseif\n";
-        gen.gen_expr(elsif->expr);
+        int bool_val = gen.gen_expr(elsif->expr);
         gen.pop("rax");
+
+        if (bool_val != 0 && bool_val != 1)
+          gen.bool_error(std::to_string(bool_val));
+
         const std::string label = gen.create_label();
         gen.m_output << "    test rax, rax\n";
         gen.m_output << "    jz " << label << "\n";
@@ -492,7 +506,6 @@ public:
 
   std::optional<Var> list_check(const NodeExpr *expr)
   {
-
     if(std::holds_alternative<NodeTerm*>(expr->variant))
     {
       NodeTerm* term = std::get<NodeTerm*>(expr->variant);
@@ -595,7 +608,11 @@ public:
       void operator()(const NodeStmtIf *stmt_if)
       {
         gen.m_output << "    ;; /if\n";
-        gen.gen_expr(stmt_if->expr);
+        const int bool_val = gen.gen_expr(stmt_if->expr);
+
+        if (bool_val != 0 && bool_val != 1)
+          gen.bool_error(std::to_string(bool_val));
+
         gen.pop("rax");
         const std::string label = gen.create_label();
         gen.m_output << "    test rax, rax\n";
@@ -624,6 +641,10 @@ public:
         // gen.m_output << start << ":\n";
         //loop
         int val = gen.gen_expr(stmt_while->expr);
+
+        if (val != 0 && val != 1)
+          gen.bool_error(std::to_string(val));
+
         while(val != 0) 
         {
           gen.pop("rax");
@@ -769,7 +790,7 @@ private:
   void pop(const std::string &reg) 
   {
     std::string output = m_output.str();
-    std::string search = "    push " + reg + "\n";
+    const std::string search = "    push " + reg + "\n";
 
     /* Worth it? (almost certainly not) Or is it faster to have an extra push and pop instruction? */
     if (output.size() > search.size() && output.rfind(search) == output.size() - search.size()) 
@@ -808,7 +829,11 @@ private:
     return "label" + std::to_string(m_label_count++);
   }
 
-
+  void bool_error(const std::string msg)
+  {
+    std::cerr << "[Visitor] Expected boolean value (0 or 1) but found `" << msg << "`" << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
   /* please values */
   float m_please_count = 0;

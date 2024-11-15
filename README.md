@@ -72,7 +72,8 @@ test
     make install-test
     ```
 
-Testing the installation tests the local compiler binary on a .pls file then runs the executable, which should give the following output: 
+Testing the installation will use the compiler binary on a .pls file then run
+the executable, which gives the output: 
 ```
 please examples/install.pls -o test
 ./test
@@ -93,7 +94,7 @@ please file.pls
 The following code is an example of a valid 'Hello World!' PleaseLang program:
 ```
 /* Hello world! */
-please printn('H', 'e', 'l', 'l', 'o', space, 'W', 'o', 'r', 'l', 'd', '!');
+please printn("Hello World!");
 
 goodbye(0);
 ```
@@ -126,7 +127,7 @@ $$
 - **src/**: Contains the source code for the Please Compiler.
 - **examples/**: Sample polite code files for testing.
 - **docs/**: Documentation and specifications for the language.
-- **build/**: Contains the build files from cmake and the compiler executable.
+- **build/**: Contains the build files from cmake and the compiler executable after using `make install`.
 
 ## Contributing
 

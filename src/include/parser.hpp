@@ -69,8 +69,46 @@ public:
       auto term = m_allocator.emplace<NodeTerm>(term_int_lit);
       return term;
     }
-    else 
-      return {};
+    else if (auto list = try_consume(TokenType::LEN))
+    {
+      try_consume_err(TokenType::LPAREN);
+      if(auto expr = parse_expr())
+      {
+        auto term_len = m_allocator.emplace<NodeTermLen>(expr.value());
+        auto term = m_allocator.emplace<NodeTerm>(term_len);
+        try_consume_err(TokenType::RPAREN);
+        return term;
+      }
+      else if ( auto list_node = parse_list())
+      {
+        struct ListVisitor {
+          Parser &p;
+          Token &list;
+
+          NodeTerm* operator()(NodeListPreInit* prelist) {
+            Token int_lit = {TokenType::INT_LIT, list.line, std::to_string(prelist->elements.size())};
+            auto term_int_lit = p.m_allocator.emplace<NodeTermIntLit>(int_lit);
+            auto term = p.m_allocator.emplace<NodeTerm>(term_int_lit);
+            auto expr = p.m_allocator.emplace<NodeExpr>(term);
+
+            auto term_len = p.m_allocator.emplace<NodeTermLen>(expr);
+            auto term_len_expr = p.m_allocator.emplace<NodeTerm>(term_len);
+            return term_len_expr;
+          }
+          NodeTerm* operator()(NodeListNotInit* prelist) {
+            p.error_invalid("list - trying to get the length of an uninitialized list");
+            return {};
+          }
+        };
+
+        ListVisitor lv {.p = *this, .list = list.value()};
+        try_consume_err(TokenType::RPAREN);
+        return std::visit(lv, list_node.value()->variant);
+      }
+      else 
+        error_expected("expression or list");
+    }
+    return {};
   }
 
   std::optional<NodeList*> parse_list() {
