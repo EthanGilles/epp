@@ -831,7 +831,7 @@ private:
 
   void bool_error(const std::string msg)
   {
-    std::cerr << "[Visitor] Expected boolean value (0 or 1) but found `" << msg << "`" << std::endl;
+    std::cerr << "[Visitor Error] Expected boolean value (0 or 1) but found `" << msg << "`" << std::endl;
     exit(EXIT_FAILURE);
   }
 

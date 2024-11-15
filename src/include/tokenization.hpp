@@ -50,6 +50,8 @@ enum class TokenType {
   NOTEQ, // '!='
   NOT, // '!'
   DBEQ, // '=='
+  DOT, // '.'
+  QUESTION, // '?'
 };
 
 struct Token {
@@ -96,7 +98,7 @@ public:
       {
         /* Add entire word to the buffer */
         buffer.push_back(consume());
-        while (peek().has_value() && (std::isalnum(peek().value()) || peek().value() == '_'))
+        while (peek().has_value() && (std::isalnum(peek().value()) || peek().value() == '_') )
           buffer.push_back(consume());
 
         auto keyword = keywordMap.find(buffer);
@@ -295,6 +297,8 @@ private:
     {'%', TokenType::PERCENT},
     {',', TokenType::COMMA},
     {'\'', TokenType::QUOTE},
+    {'.', TokenType::DOT},
+    {'?', TokenType::QUESTION},
   };
 
   std::unordered_map<std::string, TokenType> keywordMap = {
