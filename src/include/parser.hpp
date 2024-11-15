@@ -116,23 +116,29 @@ public:
     if(auto bracket = try_consume(TokenType::LCURLY)) {
       std::vector<NodeExpr*> elements;
 
+      if(auto expr = parse_expr())
+        elements.push_back(expr.value());
+
       while (true)
       {
-        if(auto expr = parse_expr())
+        if(peek().has_value() && peek().value().type == TokenType::COMMA) 
         {
-          elements.push_back(expr.value());
-        }
-        /* this sucks */
-        else if(peek().has_value() && peek().value().type == TokenType::COMMA)
+          if(elements.size() == 0)
+            error_expected("expression before comma");
           consume();
+
+          if(auto expr = parse_expr())
+            elements.push_back(expr.value());
+          else
+           error_expected("expression after comma");
+        }
         else if (peek().has_value() && peek().value().type == TokenType::RCURLY)
         {
           consume();
           break;
         }
-        else {
-          error_expected("Closing brace");
-        }
+        else 
+          error_invalid("List Definition");
       }
 
       auto pre_init = m_allocator.emplace<NodeListPreInit>(elements);
@@ -410,7 +416,7 @@ public:
       return stmt;
     }
 
-
+    /* FIX: INFINITE LOOP WHEN NO CLOSING BRACKET OR BAD LIST DEF */
     /* PARSE -> PRINT (EXPR, EXPR, ...) */
     else if (peek().has_value() && peek().value().type == TokenType::PRINT && 
         peek(1).has_value() && peek(1).value().type == TokenType::LPAREN)
@@ -419,40 +425,73 @@ public:
       consume(); /* Consume LPAREN */
       std::vector<NodeExpr*> args;
 
+      /* PARSE FIRST EXPRESSION / LIST */
+      if(auto expr = parse_expr()) 
+        args.push_back(expr.value());
+      else if (auto list = parse_list())
+      {
+        /* Variant of not initialized or initialized */
+        struct ListVisitor {
+          Parser &p;
+          std::vector<NodeExpr*> args;
+
+          std::vector<NodeExpr*> operator()(NodeListPreInit* prelist) {
+            for(auto expr : prelist->elements)
+              args.push_back(expr);
+            return args;
+          }
+          std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
+            p.error_invalid("list - trying to print uninitialized list");
+            return {};
+          }
+        };
+
+        ListVisitor lv {.p = *this, .args = args};
+        args = std::visit(lv, list.value()->variant);
+      }
+      /* PARSE THE REST OF THE ARGUMENTS */
       while (true)
       {
-        if(auto expr = parse_expr())
-          args.push_back(expr.value());
-        else if (auto list = parse_list())
+        if(peek().has_value() && peek().value().type == TokenType::COMMA)
         {
-          /* Variant of not initialized or initialized */
-          struct ListVisitor {
-            Parser &p;
-            std::vector<NodeExpr*> args;
+          if(args.size() == 0)
+            error_expected("expression before comma");
+          else
+            consume();
 
-            std::vector<NodeExpr*> operator()(NodeListPreInit* prelist) {
-              for(auto expr : prelist->elements)
-                args.push_back(expr);
-              return args;
-            }
-            std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
-              p.error_invalid("list - trying to print uninitialized list");
-              return {};
-            }
-          };
+          if(auto expr = parse_expr())
+            args.push_back(expr.value());
+          else if (auto list = parse_list())
+          {
+            /* Variant of not initialized or initialized */
+            struct ListVisitor {
+              Parser &p;
+              std::vector<NodeExpr*> args;
 
-          ListVisitor lv {.p = *this, .args = args};
-          args = std::visit(lv, list.value()->variant);
+              std::vector<NodeExpr*> operator()(NodeListPreInit* prelist) {
+                for(auto expr : prelist->elements)
+                  args.push_back(expr);
+                return args;
+              }
+              std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
+                p.error_invalid("list - trying to print uninitialized list");
+                return {};
+              }
+            };
+
+            ListVisitor lv {.p = *this, .args = args};
+            args = std::visit(lv, list.value()->variant);
+          }
+          else
+            error_expected("expression after comma");
         }
-        else if(peek().has_value() && peek().value().type == TokenType::COMMA)
-          consume();
         else if (peek().has_value() && peek().value().type == TokenType::RPAREN)
         {
           consume();
           break;
         }
         else 
-          error_expected("Closing parenthesis");
+          error_invalid("print statement");
       }
 
       try_consume_err(TokenType::SEMI);
@@ -462,6 +501,7 @@ public:
       return stmt;
     }
 
+    /* FIX: INFINITE LOOP WHEN NO CLOSING BRACKET OR BAD LIST DEF */
     /* PARSE -> PRINTN() */
     else if (peek().has_value() && peek().value().type == TokenType::PRINTNL && 
         peek(1).has_value() && peek(1).value().type == TokenType::LPAREN)
@@ -470,39 +510,73 @@ public:
       consume(); /* Consume LPAREN */
       std::vector<NodeExpr*> args;
 
+      if(auto expr = parse_expr())
+        args.push_back(expr.value());
+      else if (auto list = parse_list())
+      {
+        /* Variant of not initialized or initialized */
+        struct ListVisitor {
+          Parser &p;
+          std::vector<NodeExpr*> args;
+
+          std::vector<NodeExpr*> operator()(NodeListPreInit* prelist) {
+            for(auto expr : prelist->elements)
+              args.push_back(expr);
+            return args;
+          }
+          std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
+            p.error_invalid("list - trying to print uninitialized list");
+            return {};
+          }
+        };
+
+        ListVisitor lv {.p = *this, .args = args};
+        args = std::visit(lv, list.value()->variant);
+      }
+
       while (true)
       {
-        if(auto expr = parse_expr())
-          args.push_back(expr.value());
-        else if (auto list = parse_list())
-        {
-          /* Variant of not initialized or initialized */
-          struct ListVisitor {
-            Parser &p;
-            std::vector<NodeExpr*> args;
-
-            std::vector<NodeExpr*> operator()(NodeListPreInit* prelist) {
-              for(auto expr : prelist->elements)
-                args.push_back(expr);
-              return args;
-            }
-            std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
-              p.error_invalid("list - trying to print uninitialized list");
-              return {};
-            }
-          };
-
-          ListVisitor lv {.p = *this, .args = args};
-          args = std::visit(lv, list.value()->variant);
-        }
 
         if(peek().has_value() && peek().value().type == TokenType::COMMA)
-          consume();
+        {
+          if(args.size() == 0)
+            error_expected("expression before comma");
+          else
+            consume();
+
+          if(auto expr = parse_expr())
+            args.push_back(expr.value());
+          else if (auto list = parse_list())
+          {
+            /* Variant of not initialized or initialized */
+            struct ListVisitor {
+              Parser &p;
+              std::vector<NodeExpr*> args;
+
+              std::vector<NodeExpr*> operator()(NodeListPreInit* prelist) {
+                for(auto expr : prelist->elements)
+                  args.push_back(expr);
+                return args;
+              }
+              std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
+                p.error_invalid("list - trying to print uninitialized list");
+                return {};
+              }
+            };
+
+            ListVisitor lv {.p = *this, .args = args};
+            args = std::visit(lv, list.value()->variant);
+          }
+          else
+            error_expected("expression after comma");
+        }
         else if (peek().has_value() && peek().value().type == TokenType::RPAREN)
         {
           consume();
           break;
         }
+        else 
+          error_invalid("printn statement");
       }
 
       /* add a newline character at the end */
