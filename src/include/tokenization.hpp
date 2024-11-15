@@ -71,9 +71,10 @@ public:
     std::vector<Token> tokens;
     std::string buffer;
     size_t line_count = 1;
-
+    bool token_found = false;
     while (peek().has_value())
     {
+      token_found = false;
       /* Tokenize string */
       if (peek().value() == '\"')
       {
@@ -91,6 +92,7 @@ public:
 
         tokens.emplace_back(TokenType::STRING, line_count, buffer);
         buffer.clear();
+        token_found = true;
       }
 
       /* Tokenize word */
@@ -119,6 +121,7 @@ public:
           tokens.emplace_back(TokenType::ID, line_count, buffer);
 
         buffer.clear();
+        token_found = true;
       }
 
       /* Tokenize number */
@@ -130,6 +133,7 @@ public:
 
         tokens.emplace_back(TokenType::INT_LIT, line_count, buffer);
         buffer.clear();
+        token_found = true;
       }
 
       /* One line comment */
@@ -139,6 +143,7 @@ public:
         consume(); // Second slash
         while (peek().has_value() && peek().value() != '\n') 
           consume(); // Skip everything until new line character
+        token_found = true;
       }
 
       /* Multi-line comment */
@@ -156,12 +161,14 @@ public:
           consume();
         if (peek().has_value())
           consume();
+        token_found = true;
       }
 
       else if (peek().value() == '\n')
       {
         consume();
         line_count++;
+        token_found = true;
       }
 
       /* double char tokens */
@@ -175,6 +182,7 @@ public:
         }
         else
           tokens.emplace_back(TokenType::LT, line_count);
+        token_found = true;
       }
       else if (peek().value() == '>')
       {
@@ -186,8 +194,8 @@ public:
         }
         else
           tokens.emplace_back(TokenType::GT, line_count);
+        token_found = true;
       }
-
       else if (peek().value() == '!')
       {
         consume();
@@ -201,6 +209,7 @@ public:
           tokens.emplace_back(TokenType::NOT, line_count);
           assert(false && "`Not` not implemented");
         }
+        token_found = true;
       }
       else if (peek().value() == '=')
       {
@@ -212,6 +221,7 @@ public:
         }
         else 
           tokens.emplace_back(TokenType::EQUALS, line_count);
+        token_found = true;
       }
       else if (peek().value() == '\'')
       {
@@ -226,6 +236,7 @@ public:
         }
         tokens.emplace_back(TokenType::CHAR, line_count, buffer);
         buffer.clear();
+        token_found = true;
       }
 
       /* Look for single char tokens */
@@ -233,16 +244,19 @@ public:
       {
         tokens.emplace_back(tokenMap[peek().value()], line_count);
         consume();
+        token_found = true;
       }
 
       else if (std::isspace(peek().value()))
       {
         consume();
+        token_found = true;
       }
 
       /* why?? */
       /* Tokenize 🙏 */
-      else if(peek(1).has_value() && peek(2).has_value() && peek(3).has_value()) {
+      else if(peek(1).has_value() && peek(2).has_value() && peek(3).has_value()) 
+      {
         buffer.push_back(peek().value());
         buffer.push_back(peek(1).value());
         buffer.push_back(peek(2).value());
@@ -253,11 +267,12 @@ public:
           consume();
           consume();
           tokens.emplace_back(TokenType::PLEASE, line_count);
+          token_found = true;
         }
         buffer.clear();
       }
 
-      else
+      if (!token_found)
       {
           std::cerr << "[Tokenizer Error] Invalid token." << std::endl;
           exit(EXIT_FAILURE);

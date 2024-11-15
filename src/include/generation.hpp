@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdlib>
 #include <ctime>
+#include <string>
 #include <variant>
 #include <ranges>
 #include "grammar.hpp"
@@ -40,15 +41,9 @@ public:
             { return var.name == id_lit->ID.value.value(); });
 
         if(it == gen.m_vars.cend())
-        {
-          std::cerr << "Undeclared identifier: " << id_lit->ID.value.value() << std::endl;
-          exit(EXIT_FAILURE);
-        }
+          gen.visit_error("Undeclared identifier: " + id_lit->ID.value.value()); 
         if(it->is_list)
-        {
-          std::cerr << "Trying to access list element with no index value" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+          gen.visit_error("Trying to access list element with no index value"); 
 
         std::stringstream offset;
         offset << "QWORD [rsp + " << (gen.m_stack_size - (*it).stack_loc - 1) * 8 << "] ; Variable value";
@@ -62,25 +57,16 @@ public:
             { return var.name == id_loc->ID.value.value(); });
 
         if(it == gen.m_vars.cend())
-        {
-          std::cerr << "Undeclared identifier: " << id_loc->ID.value.value() << std::endl;
-          exit(EXIT_FAILURE);
-        }
+          gen.visit_error("Undeclared identifier: " + id_loc->ID.value.value()); 
         if(!it->is_list)
-        {
-          std::cerr << "Trying to use index on a non-list value" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+          gen.visit_error("Trying to use index on a non-list value"); 
 
         /* time to do asm math to get the index */
         gen.m_output << "    ;; /array location\n";
         int index = gen.gen_expr(id_loc->offset);
 
         if (index >= it->values.size())
-        {
-          std::cerr << "Index out of bounds" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+          gen.visit_error("Index out of bounds"); 
 
         gen.m_output << "    mov rax, rsp\n";
         gen.m_output << "    add rax, " << (gen.m_stack_size - (*it).stack_loc - 1) * 8 << "\n";
@@ -396,10 +382,7 @@ public:
         { return var.name == set_list->ArrID.value.value(); });
 
     if (it != m_vars.cend())
-    {
-      std::cerr << "Identifier already exists: `" << set_list->ArrID.value.value() << "`" << std::endl;
-      exit(EXIT_FAILURE);
-    }
+      visit_error("Identifier already exists: `" + set_list->ArrID.value.value() + "`"); 
 
     gen_list(set_list->list, set_list->ArrID.value.value());
   }
@@ -416,10 +399,8 @@ public:
             { return var.name == stmt_id->ID.value.value(); });
 
         if (it != gen.m_vars.cend())
-        {
-          std::cerr << "Identifier already exists: `" << stmt_id->ID.value.value() << "`" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+          gen.visit_error("Identifier already exists: `" + stmt_id->ID.value.value() + "`"); 
+
         size_t location = gen.m_stack_size;
         int val = gen.gen_expr(stmt_id->expr);
         std::vector<int> values = {val};
@@ -446,15 +427,9 @@ public:
             { return var.name == stmt_id->ID.value.value(); });
 
         if (it == gen.m_vars.cend())
-        {
-          std::cerr << "Resetting an undeclared identifier: `" << stmt_id->ID.value.value() << "`" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+          gen.visit_error("Resetting an undeclared identifier: `" + stmt_id->ID.value.value() + "`"); 
         if (it->is_list)
-        {
-          std::cerr << "Resetting a list variable without an index" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+          gen.visit_error("Resetting a list variable without an index"); 
 
         int val = gen.gen_expr(stmt_id->expr);
         gen.pop("rax");
@@ -467,25 +442,16 @@ public:
             { return var.name == arr_id->ArrID.value.value(); });
 
         if (it == gen.m_vars.cend())
-        {
-          std::cerr << "Resetting an undeclared identifier: `" << arr_id->ArrID.value.value() << "`" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+          gen.visit_error("Resetting an undeclared identifier: `" + arr_id->ArrID.value.value() + "`"); 
         if (!it->is_list)
-        {
-          std::cerr << "Resetting a non-list variable with an index" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+          gen.visit_error("Resetting a non-list variable with an index"); 
 
         gen.m_output << "    ;; /array location\n";
         int expr = gen.gen_expr(arr_id->expr);
         int index = gen.gen_expr(arr_id->index);
 
         if(index >= it->values.size() || index < 0)
-        {
-          std::cerr << "Accessed out of bounds index `" << index << "` for list size `" << it->values.size()<< "`" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+          gen.visit_error("Accessed out of bounds index `" + std::to_string(index) + "` for list size `" + std::to_string(it->values.size()) + "`"); 
 
         gen.m_output << "    mov rcx, rsp\n";
         gen.m_output << "    add rcx, " << (gen.m_stack_size - (*it).stack_loc - 1) * 8 << "\n";
@@ -520,10 +486,7 @@ public:
               { return var.name == id_lit->ID.value.value(); });
           
           if(it == m_vars.cend())
-          {
-            std::cerr << "Undeclared identifier: " << id_lit->ID.value.value() << std::endl;
-            exit(EXIT_FAILURE);
-          }
+            visit_error("Undeclared identifier: " + id_lit->ID.value.value()); 
           if(it->is_list)
           {
             return *it;
@@ -832,6 +795,12 @@ private:
   void bool_error(const std::string msg)
   {
     std::cerr << "[Visitor Error] Expected boolean value (0 or 1) but found `" << msg << "`" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  void visit_error(const std::string msg)
+  {
+    std::cerr << "[Visitor Error] " << msg  << std::endl;
     exit(EXIT_FAILURE);
   }
 
