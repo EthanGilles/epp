@@ -342,10 +342,8 @@ public:
         size_t location = gen.m_stack_size;
         std::vector<int> values;
 
-        if (not_init->size != nullptr)
+        if (not_init->size != nullptr) /* not a string */
         {
-
-
           int size = gen.gen_expr(not_init->size);
           gen.pop("rax"); // don't need size on the stack
           for(int i = 0; i < size; i++)
@@ -355,7 +353,7 @@ public:
           }
           gen.m_vars.emplace_back(ID, location, values, true);
         }
-        else 
+        else /* its a string */
         {
           int expr = gen.gen_expr(not_init->init_value);
           gen.pop("rax"); // don't need actual value of expr on the stack
@@ -369,6 +367,50 @@ public:
           }
           gen.m_vars.emplace_back(ID, location, values, true);
         }
+      }
+      void operator()(const NodeListRange *range) const
+      {
+        size_t location = gen.m_stack_size;
+        std::vector<int> values;
+
+        int lhs = gen.gen_expr(range->lhs);
+        int rhs = gen.gen_expr(range->rhs);
+        gen.pop("rax");
+
+        if(lhs == rhs)
+          values.push_back(lhs);
+        else if(lhs < rhs)
+        {
+          values.push_back(lhs);
+          lhs++;
+          while(lhs < rhs)
+          {
+            values.push_back(lhs);
+            gen.m_output << "    mov rax, " << lhs << "\n";
+            gen.push("rax");
+            lhs++;
+          }
+          values.push_back(rhs);
+          gen.m_output << "    mov rax, " << rhs << "\n";
+          gen.push("rax");
+        }
+        else 
+        {
+          values.push_back(lhs);
+          lhs--;
+          while(lhs > rhs)
+          {
+            values.push_back(lhs);
+            gen.m_output << "    mov rax, " << lhs << "\n";
+            gen.push("rax");
+            lhs--;
+          }
+          values.push_back(rhs);
+          gen.m_output << "    mov rax, " << rhs << "\n";
+          gen.push("rax");
+        }
+
+        gen.m_vars.emplace_back(ID, location, values, true);
       }
     };
 

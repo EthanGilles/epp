@@ -6,8 +6,11 @@ set str_length = str(len("HELLO") + len(x) + len(list));
 
 please printn("Length of all list items is: ", str_length);
 
-please set range = ['1'..'5'];
+printn();
+please set range = [list[0]..100];
 please printn("Range is: ", range);
+set str_len = str(len(range));
+please printn("Size of range: ", str_len);
 
 /* 
 TODO:

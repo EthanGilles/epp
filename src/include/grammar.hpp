@@ -135,8 +135,13 @@ struct NodeListNotInit {
   NodeExpr* init_value;
 };
 
+struct NodeListRange {
+  NodeExpr* lhs;
+  NodeExpr* rhs;
+};
+
 struct NodeList {
-  std::variant<NodeListPreInit*, NodeListNotInit*> variant;
+  std::variant<NodeListPreInit*, NodeListNotInit*, NodeListRange*> variant;
 };
 
 struct NodeTermLen {

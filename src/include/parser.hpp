@@ -99,6 +99,10 @@ public:
             p.error_invalid("list - trying to get the length of an uninitialized list");
             return {};
           }
+          NodeTerm* operator()(NodeListRange* prelist) {
+            p.error_invalid("list - trying to get the length of an uninitialized list");
+            return {};
+          }
         };
 
         ListVisitor lv {.p = *this, .list = list.value()};
@@ -147,10 +151,9 @@ public:
     }
     /* PARSE [EXPR, EXPR] */
     else if(auto bracket = try_consume(TokenType::LBRACKET)) {
-      std::vector<NodeExpr*> elements;
 
-      auto list_size = parse_expr();
-      if (!list_size.has_value())
+      auto lhs = parse_expr();
+      if (!lhs.has_value())
         error_expected("expression for the size of the list");
 
       /* set initial value to 0 */
@@ -165,10 +168,21 @@ public:
         if (!init_value.has_value())
           error_expected("expression following comma");
       }
+      if(try_consume(TokenType::RANGE)) {
+        auto rhs = parse_expr();
+        if (!rhs.has_value())
+          error_expected("expression following range");
+
+        try_consume_err(TokenType::RBRACKET);
+
+        auto range = m_allocator.emplace<NodeListRange>(lhs.value(), rhs.value());
+        auto list = m_allocator.emplace<NodeList>(range);
+        return list;
+      }
 
       try_consume_err(TokenType::RBRACKET);
 
-      auto not_init = m_allocator.emplace<NodeListNotInit>(list_size.value(), init_value.value());
+      auto not_init = m_allocator.emplace<NodeListNotInit>(lhs.value(), init_value.value());
       auto list = m_allocator.emplace<NodeList>(not_init);
       return list;
     }
@@ -444,6 +458,10 @@ public:
             p.error_invalid("list - trying to print uninitialized list");
             return {};
           }
+          std::vector<NodeExpr*> operator()(NodeListRange* prelist) {
+            p.error_invalid("list - trying to print uninitialized list");
+            return {};
+          }
         };
 
         ListVisitor lv {.p = *this, .args = args};
@@ -475,6 +493,10 @@ public:
               }
               std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
                 p.error_invalid("list - trying to print uninitialized list");
+                return {};
+              }
+              std::vector<NodeExpr*> operator()(NodeListRange* prelist) {
+                p.error_invalid("list - trying to get the length of an uninitialized list");
                 return {};
               }
             };
@@ -528,6 +550,10 @@ public:
             p.error_invalid("list - trying to print uninitialized list");
             return {};
           }
+          std::vector<NodeExpr*> operator()(NodeListRange* prelist) {
+            p.error_invalid("list - trying to print uninitialized list");
+            return {};
+          }
         };
 
         ListVisitor lv {.p = *this, .args = args};
@@ -559,6 +585,10 @@ public:
                 return args;
               }
               std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
+                p.error_invalid("list - trying to print uninitialized list");
+                return {};
+              }
+              std::vector<NodeExpr*> operator()(NodeListRange* prelist) {
                 p.error_invalid("list - trying to print uninitialized list");
                 return {};
               }

@@ -170,6 +170,15 @@ public:
         token_found = true;
       }
 
+      /* range token */
+      else if (peek().value() == '.' && peek(1).has_value() && peek(1).value() == '.')
+      {
+        consume();
+        consume();
+        tokens.emplace_back(TokenType::RANGE, line_count);
+        token_found = true;
+      }
+
       /* double char tokens */
       else if (peek().value() == '<')
       {
