@@ -50,8 +50,7 @@ enum class TokenType {
   NOTEQ, // '!='
   NOT, // '!'
   DBEQ, // '=='
-  DOT, // '.'
-  QUESTION, // '?'
+  RANGE, // '..'
 };
 
 struct Token {
@@ -312,8 +311,6 @@ private:
     {'%', TokenType::PERCENT},
     {',', TokenType::COMMA},
     {'\'', TokenType::QUOTE},
-    {'.', TokenType::DOT},
-    {'?', TokenType::QUESTION},
   };
 
   std::unordered_map<std::string, TokenType> keywordMap = {

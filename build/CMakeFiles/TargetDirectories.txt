@@ -1,0 +1,3 @@
+/home/exan/cpp/pleaselang/build/CMakeFiles/please.dir
+/home/exan/cpp/pleaselang/build/CMakeFiles/edit_cache.dir
+/home/exan/cpp/pleaselang/build/CMakeFiles/rebuild_cache.dir

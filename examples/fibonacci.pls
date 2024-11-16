@@ -1,9 +1,7 @@
-
 /* fibonacci sequence */
 PLEASE 
 🙏 set nums = {1, 0, 0};
 🙏 set limit = 10;
-
 
 
 set count = 0;
@@ -24,5 +22,3 @@ if (nums[2] == 55) {
 else {
   please printn("fail");
 }
-
-goodbye(0);
