@@ -664,7 +664,6 @@ public:
     {
       consume(); // consume RESET
       const auto reset_id = m_allocator.emplace<NodeStmtResetID>(consume());
-      const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
       consume(); //consume =
 
       if(const auto expr = parse_expr()) 
@@ -672,6 +671,177 @@ public:
       else 
         error_invalid("expression");
 
+      const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
+      try_consume_err(TokenType::SEMI);
+      auto stmt = m_allocator.emplace<NodeStmt>(reset);
+      return stmt;
+    }
+
+    /* PARSE -> RESET ID += [EXPR] */
+    else if(peek().has_value() && peek().value().type == TokenType::RESET && 
+            peek(1).has_value() && peek(1).value().type == TokenType::ID && 
+            peek(2).has_value() && peek(2).value().type == TokenType::PLUS && 
+            peek(3).has_value() && peek(3).value().type == TokenType::EQUALS )
+    {
+      consume(); // consume RESET
+      auto id = consume();
+      const auto reset_id = m_allocator.emplace<NodeStmtResetID>(id);
+      consume(); //consume +
+      consume(); //consume =
+
+      auto id_lit = m_allocator.emplace<NodeTermIDLit>(id);
+      auto term_id = m_allocator.emplace<NodeTermID>(id_lit);
+      auto term = m_allocator.emplace<NodeTerm>(term_id);
+      auto self = m_allocator.emplace<NodeExpr>(term);
+
+      const auto add_expr = parse_expr();
+      if(!add_expr.has_value())
+        error_invalid("expression");
+
+      // add together itself and the new expression
+      auto bin_expr = m_allocator.emplace<NodeBinExprAdd>(self, add_expr.value());
+      auto bin = m_allocator.emplace<NodeBinExpr>(bin_expr);
+      auto expr = m_allocator.emplace<NodeExpr>(bin);
+      // make the reset statement's expression be the addition
+      reset_id->expr = expr;
+
+      const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
+      try_consume_err(TokenType::SEMI);
+      auto stmt = m_allocator.emplace<NodeStmt>(reset);
+      return stmt;
+    }
+
+    /* PARSE -> RESET ID -= [EXPR] */
+    else if(peek().has_value() && peek().value().type == TokenType::RESET && 
+            peek(1).has_value() && peek(1).value().type == TokenType::ID && 
+            peek(2).has_value() && peek(2).value().type == TokenType::MINUS && 
+            peek(3).has_value() && peek(3).value().type == TokenType::EQUALS )
+    {
+      consume(); // consume RESET
+      auto id = consume();
+      const auto reset_id = m_allocator.emplace<NodeStmtResetID>(id);
+      consume(); //consume +
+      consume(); //consume =
+
+      auto id_lit = m_allocator.emplace<NodeTermIDLit>(id);
+      auto term_id = m_allocator.emplace<NodeTermID>(id_lit);
+      auto term = m_allocator.emplace<NodeTerm>(term_id);
+      auto self = m_allocator.emplace<NodeExpr>(term);
+
+      const auto add_expr = parse_expr();
+      if(!add_expr.has_value())
+        error_invalid("expression");
+
+      // add together itself and the new expression
+      auto bin_expr = m_allocator.emplace<NodeBinExprSub>(self, add_expr.value());
+      auto bin = m_allocator.emplace<NodeBinExpr>(bin_expr);
+      auto expr = m_allocator.emplace<NodeExpr>(bin);
+      // make the reset statement's expression be the addition
+      reset_id->expr = expr;
+
+      const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
+      try_consume_err(TokenType::SEMI);
+      auto stmt = m_allocator.emplace<NodeStmt>(reset);
+      return stmt;
+    }
+
+    /* PARSE -> RESET ID *= [EXPR] */
+    else if(peek().has_value() && peek().value().type == TokenType::RESET && 
+            peek(1).has_value() && peek(1).value().type == TokenType::ID && 
+            peek(2).has_value() && peek(2).value().type == TokenType::STAR && 
+            peek(3).has_value() && peek(3).value().type == TokenType::EQUALS )
+    {
+      consume(); // consume RESET
+      auto id = consume();
+      const auto reset_id = m_allocator.emplace<NodeStmtResetID>(id);
+      consume(); //consume +
+      consume(); //consume =
+
+      auto id_lit = m_allocator.emplace<NodeTermIDLit>(id);
+      auto term_id = m_allocator.emplace<NodeTermID>(id_lit);
+      auto term = m_allocator.emplace<NodeTerm>(term_id);
+      auto self = m_allocator.emplace<NodeExpr>(term);
+
+      const auto add_expr = parse_expr();
+      if(!add_expr.has_value())
+        error_invalid("expression");
+
+      // add together itself and the new expression
+      auto bin_expr = m_allocator.emplace<NodeBinExprMulti>(self, add_expr.value());
+      auto bin = m_allocator.emplace<NodeBinExpr>(bin_expr);
+      auto expr = m_allocator.emplace<NodeExpr>(bin);
+      // make the reset statement's expression be the addition
+      reset_id->expr = expr;
+
+      const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
+      try_consume_err(TokenType::SEMI);
+      auto stmt = m_allocator.emplace<NodeStmt>(reset);
+      return stmt;
+    }
+
+    /* PARSE -> RESET ID /= [EXPR] */
+    else if(peek().has_value() && peek().value().type == TokenType::RESET && 
+            peek(1).has_value() && peek(1).value().type == TokenType::ID && 
+            peek(2).has_value() && peek(2).value().type == TokenType::FSLASH && 
+            peek(3).has_value() && peek(3).value().type == TokenType::EQUALS )
+    {
+      consume(); // consume RESET
+      auto id = consume();
+      const auto reset_id = m_allocator.emplace<NodeStmtResetID>(id);
+      consume(); //consume +
+      consume(); //consume =
+
+      auto id_lit = m_allocator.emplace<NodeTermIDLit>(id);
+      auto term_id = m_allocator.emplace<NodeTermID>(id_lit);
+      auto term = m_allocator.emplace<NodeTerm>(term_id);
+      auto self = m_allocator.emplace<NodeExpr>(term);
+
+      const auto add_expr = parse_expr();
+      if(!add_expr.has_value())
+        error_invalid("expression");
+
+      // add together itself and the new expression
+      auto bin_expr = m_allocator.emplace<NodeBinExprDiv>(self, add_expr.value());
+      auto bin = m_allocator.emplace<NodeBinExpr>(bin_expr);
+      auto expr = m_allocator.emplace<NodeExpr>(bin);
+      // make the reset statement's expression be the addition
+      reset_id->expr = expr;
+
+      const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
+      try_consume_err(TokenType::SEMI);
+      auto stmt = m_allocator.emplace<NodeStmt>(reset);
+      return stmt;
+    }
+
+    /* PARSE -> RESET ID %= [EXPR] */
+    else if(peek().has_value() && peek().value().type == TokenType::RESET && 
+            peek(1).has_value() && peek(1).value().type == TokenType::ID && 
+            peek(2).has_value() && peek(2).value().type == TokenType::PERCENT && 
+            peek(3).has_value() && peek(3).value().type == TokenType::EQUALS )
+    {
+      consume(); // consume RESET
+      auto id = consume();
+      const auto reset_id = m_allocator.emplace<NodeStmtResetID>(id);
+      consume(); //consume +
+      consume(); //consume =
+
+      auto id_lit = m_allocator.emplace<NodeTermIDLit>(id);
+      auto term_id = m_allocator.emplace<NodeTermID>(id_lit);
+      auto term = m_allocator.emplace<NodeTerm>(term_id);
+      auto self = m_allocator.emplace<NodeExpr>(term);
+
+      const auto add_expr = parse_expr();
+      if(!add_expr.has_value())
+        error_invalid("expression");
+
+      // add together itself and the new expression
+      auto bin_expr = m_allocator.emplace<NodeBinExprMod>(self, add_expr.value());
+      auto bin = m_allocator.emplace<NodeBinExpr>(bin_expr);
+      auto expr = m_allocator.emplace<NodeExpr>(bin);
+      // make the reset statement's expression be the addition
+      reset_id->expr = expr;
+
+      const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
       try_consume_err(TokenType::SEMI);
       auto stmt = m_allocator.emplace<NodeStmt>(reset);
       return stmt;
@@ -718,7 +888,6 @@ public:
       else
         error_invalid("scope");
     }
-
 
     /* PARSE -> WHILE (EXPR) { STMT } */
     else if (auto while_ = try_consume(TokenType::WHILE))

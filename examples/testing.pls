@@ -11,18 +11,22 @@ please printn("Range is: ", range[25]);
 set str_len = str(len(range));
 please printn("Size of range: ", str_len);
 
+
+please set a = 16;
+please reset a %= 15;
+
+if (a == 1) {
+  please printn("pass");
+}
+
+set str_a = str(a);
+please printn("a = ", str_a);
+
 /* 
 TODO:
  - push next release to main
 
 NEXT FEATURES :
- - Syntactic sugar? 
-   - reset i+= [expr] === reset i = i + [expr];
-   - reset i-= [expr] === reset i = i - [expr];
-   - reset i*= [expr] === reset i = i * [expr];
-   - reset i/= [expr] === reset i = i / [expr];
-   - reset i%= [expr] === reset i = i % [expr];
-
  - Functions?
 
  - For loops 

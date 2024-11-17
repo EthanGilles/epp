@@ -9,7 +9,7 @@ all:
 
 # Clean target
 clean:
-	rm -f out*
+	rm -f out* test*
 
 # Test 
 test:
