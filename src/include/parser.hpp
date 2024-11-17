@@ -96,11 +96,11 @@ public:
             return term_len_expr;
           }
           NodeTerm* operator()(NodeListNotInit* prelist) {
-            p.error_invalid("list - trying to get the length of an uninitialized list");
+            p.error_invalid("list - cannot get the length of an uninitialized list");
             return {};
           }
           NodeTerm* operator()(NodeListRange* prelist) {
-            p.error_invalid("list - trying to get the length of an uninitialized list");
+            p.error_invalid("list - cannot get the length of an uninitialized list");
             return {};
           }
         };
@@ -154,7 +154,7 @@ public:
 
       auto lhs = parse_expr();
       if (!lhs.has_value())
-        error_expected("expression for the size of the list");
+        error_expected("expression");
 
       /* set initial value to 0 */
       Token init_token = {TokenType::INT_LIT, bracket.value().line, "0"};
@@ -455,11 +455,11 @@ public:
             return args;
           }
           std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
-            p.error_invalid("list - trying to print uninitialized list");
+            p.error_invalid("print statement - cannot print uninitialized list");
             return {};
           }
           std::vector<NodeExpr*> operator()(NodeListRange* prelist) {
-            p.error_invalid("list - trying to print uninitialized list");
+            p.error_invalid("print statement - cannot print uninitialized list");
             return {};
           }
         };
@@ -547,11 +547,11 @@ public:
             return args;
           }
           std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
-            p.error_invalid("list - trying to print uninitialized list");
+            p.error_invalid("print statement - cannot print uninitialized list");
             return {};
           }
           std::vector<NodeExpr*> operator()(NodeListRange* prelist) {
-            p.error_invalid("list - trying to print uninitialized list");
+            p.error_invalid("print statement - cannot print uninitialized list");
             return {};
           }
         };
@@ -585,11 +585,11 @@ public:
                 return args;
               }
               std::vector<NodeExpr*> operator()(NodeListNotInit* prelist) {
-                p.error_invalid("list - trying to print uninitialized list");
+                p.error_invalid("print statement - cannot print uninitialized list");
                 return {};
               }
               std::vector<NodeExpr*> operator()(NodeListRange* prelist) {
-                p.error_invalid("list - trying to print uninitialized list");
+                p.error_invalid("print statement - cannot print uninitialized list");
                 return {};
               }
             };

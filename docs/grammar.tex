@@ -176,9 +176,9 @@
     \text{exit}([\text{Expr}]); \\ 
     \text{print}([\text{Expr}] ,^* [\text{Expr}]^*); \\ 
     \text{printn}([\text{Expr}] ,^* [\text{Expr}]^*); \\ 
-    \text{set} \; \text{ID} = [\text{Expr}]; \\
-    \text{set} \; \text{array\_id} = [\text{List}]; \\
-    \text{reset} \; \text{ID} = [\text{Expr}]; \\
+    \text{set} \; [\text{ID}] = [\text{Expr}]; \\
+    \text{set} \; [\text{ListID}] = [\text{List}]; \\
+    \text{reset} \; [\text{ID}] = [\text{Expr}]; \\
     \text{if} ([\text{Expr}])[\text{Scope}][\text{AfterIf}]  \\
     \text{while} ([\text{Expr}])[\text{Scope}] \\
     [\text{Scope}] \\
@@ -200,12 +200,12 @@
     \text{int\_lit} \\ 
     \text{ID} \\ 
     \left([\text{Expr}]\right) \\
+    \text{len}\left([\text{List}]\right) \\
     \text{'char'} 
   \end{cases} \\
   [\text{ID}] &\to
   \begin{cases}
     \text{id\_lit} \\
-    \text{array\_id} \\
     [\text{ListLocation}] \\
   \end{cases} \\
 \end{align*}
@@ -213,12 +213,22 @@
 
 \begin{align*}
   [\text{ListLocation}] &\to \text{id\_lit}[ \; [\text{Expr}] \; ]\\
+  [\text{ListID}] &\to \text{id\_lit} \\
   [\text{List}] &\to 
   \begin{cases}
+  [\text{ListInit}] \\
+  [\text{ListNotInit}] \\
+  \end{cases} \\
+  [\text{ListInit}] &\to 
+  \begin{cases}
     \{[\text{Expr}], [\text{Expr}], \cdots \} \\
+    "\text{char}^*" \\ 
+  \end{cases} \\
+  [\text{ListNotInit}] &\to 
+  \begin{cases}
     [\; [\text{Expr}] \;] \\
     [\; [\text{Expr}], [\text{Expr}] \;] \\
-    "\text{char}^*" \\ 
+    [\; [\text{Expr}]..[\text{Expr}] \;] \\
     \text{str([Expr])} \\
   \end{cases} \\
   [\text{BinaryExpr}] &\to 
