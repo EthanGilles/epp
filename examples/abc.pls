@@ -3,7 +3,7 @@
 
 🙏 while (pos < 26) {
   print('A' + pos, space); // 65 = A
-  reset pos = pos + 1;
+  reset pos to pos + 1;
 }
 
 set Z to 26;

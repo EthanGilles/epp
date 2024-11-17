@@ -35,7 +35,7 @@ install-test:
 	./test
 
 lines-project:
-	./count-lines.sh src/main.cpp src/include/*
+	./count-lines.py src/main.cpp src/include/*
 
 lines-assembly:
-	./count-lines.sh out.asm
+	./count-lines.py out.asm

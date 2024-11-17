@@ -50,8 +50,7 @@ enum class TokenType {
   NOTEQ, // '!='
   NOT, // '!'
   DBEQ, // '=='
-  DOT, // '.'
-  QUESTION, // '?'
+  RANGE, // '..'
 };
 
 struct Token {
@@ -168,6 +167,15 @@ public:
       {
         consume();
         line_count++;
+        token_found = true;
+      }
+
+      /* range token */
+      else if (peek().value() == '.' && peek(1).has_value() && peek(1).value() == '.')
+      {
+        consume();
+        consume();
+        tokens.emplace_back(TokenType::RANGE, line_count);
         token_found = true;
       }
 
@@ -312,8 +320,6 @@ private:
     {'%', TokenType::PERCENT},
     {',', TokenType::COMMA},
     {'\'', TokenType::QUOTE},
-    {'.', TokenType::DOT},
-    {'?', TokenType::QUESTION},
   };
 
   std::unordered_map<std::string, TokenType> keywordMap = {

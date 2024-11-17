@@ -32,6 +32,8 @@ std::string to_string(const TokenType type)
       return "`+`";
     case TokenType::STAR:
       return "`*`";
+    case TokenType::RANGE:
+      return "`..`";
     case TokenType::MINUS:
       return "`-`";
     case TokenType::FSLASH:
