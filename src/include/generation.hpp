@@ -640,13 +640,7 @@ public:
       {
         gen.m_output << "    ;; /while\n";
 
-        const std::string start = gen.create_label();
-        const std::string end = gen.create_label();
-
-        // gen.m_output << start << ":\n";
-        //loop
         int val = gen.gen_expr(stmt_while->expr);
-
         if (val != 0 && val != 1)
           gen.bool_error(std::to_string(val));
 
@@ -659,12 +653,38 @@ public:
         }
         gen.pop("rax");
         gen.m_stmt_count += stmt_while->scope->stmts.size();
-        // gen.m_output << "    test rax, rax\n";
-        // gen.m_output << "    jz " << end << "\n";
-        // gen.m_output << "    jmp " << start << "\n";
-        // end 
-        // gen.m_output << end << ":\n";
         gen.m_output << "    ;; /while\n";
+      }
+      void operator()(const NodeStmtFor *stmt_for)
+      {
+        gen.m_output << "    ;; /for\n";
+
+        // BEGIN THE SCOPE -- WE WANT THE SET STMT IN SCOPE
+        // Kind-of hack because not using gen_scope but honestly it works fine.
+        gen.begin_scope();
+        // Only real difference from while loop is this set stmt
+        gen.gen_stmt_set(stmt_for->set);
+
+        int val = gen.gen_expr(stmt_for->cond);
+        if (val != 0 && val != 1)
+          gen.bool_error(std::to_string(val));
+
+        while(val != 0)
+        {
+          gen.pop("rax");
+          for(const NodeStmt *stmt : stmt_for->scope->stmts)
+            gen.gen_stmt(stmt);
+          gen.m_stmt_count -= stmt_for->scope->stmts.size();
+          val = gen.gen_expr(stmt_for->cond);
+        }
+        gen.pop("rax");
+
+        // END THE SCOPE -- Now our set stmt is gone since it was in scope.
+        gen.end_scope();
+
+        gen.m_stmt_count += stmt_for->scope->stmts.size();
+        gen.m_output << "    ;; /for\n";
+
       }
       /* GENERATE -> please or PLEASE */
       void operator()(const NodeStmtPlease* stmt_pls) 

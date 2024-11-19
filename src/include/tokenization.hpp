@@ -17,6 +17,7 @@ enum class TokenType {
   SET, // 'set'
   RESET, // 'reset'
   WHILE, // 'while'
+  FOR, // 'for'
   IF, // 'if'
   ELSIF, // 'elsif'
   ELSE, // 'else'
@@ -325,6 +326,7 @@ private:
   std::unordered_map<std::string, TokenType> keywordMap = {
       {"goodbye", TokenType::GOODBYE},
       {"while", TokenType::WHILE},
+      {"for", TokenType::FOR},
       {"print", TokenType::PRINT},
       {"printn", TokenType::PRINTNL},
       {"str", TokenType::TO_STR},
