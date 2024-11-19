@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdlib>
 #include <iostream>
+#include <variant>
 #include <vector>
 #include "arena.hpp"
 #include "tokenization.hpp"
@@ -523,7 +524,6 @@ public:
       return stmt;
     }
 
-    /* FIX: INFINITE LOOP WHEN NO CLOSING BRACKET OR BAD LIST DEF */
     /* PARSE -> PRINTN() */
     else if (peek().has_value() && peek().value().type == TokenType::PRINTNL && 
         peek(1).has_value() && peek(1).value().type == TokenType::LPAREN)
@@ -617,6 +617,7 @@ public:
       args.push_back(newline);
 
       try_consume_err(TokenType::SEMI);
+
       auto print_stmt = m_allocator.emplace<NodeStmtPrint>();
       print_stmt->args = args;
       auto stmt = m_allocator.emplace<NodeStmt>(print_stmt);
@@ -650,7 +651,10 @@ public:
       else 
         error_invalid("expression");
 
-      try_consume_err(TokenType::SEMI);
+      if(semi)
+        try_consume_err(TokenType::SEMI);
+      else
+        semi = true;
 
       auto stmt = m_allocator.emplace<NodeStmt>(stmt_set);
       return stmt;
@@ -672,7 +676,12 @@ public:
         error_invalid("expression");
 
       const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
-      try_consume_err(TokenType::SEMI);
+
+      if(semi)
+        try_consume_err(TokenType::SEMI);
+      else
+        semi = true;
+
       auto stmt = m_allocator.emplace<NodeStmt>(reset);
       return stmt;
     }
@@ -706,7 +715,12 @@ public:
       reset_id->expr = expr;
 
       const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
-      try_consume_err(TokenType::SEMI);
+
+      if(semi)
+        try_consume_err(TokenType::SEMI);
+      else
+        semi = true;
+
       auto stmt = m_allocator.emplace<NodeStmt>(reset);
       return stmt;
     }
@@ -740,7 +754,12 @@ public:
       reset_id->expr = expr;
 
       const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
-      try_consume_err(TokenType::SEMI);
+
+      if(semi)
+        try_consume_err(TokenType::SEMI);
+      else
+        semi = true;
+
       auto stmt = m_allocator.emplace<NodeStmt>(reset);
       return stmt;
     }
@@ -774,7 +793,12 @@ public:
       reset_id->expr = expr;
 
       const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
-      try_consume_err(TokenType::SEMI);
+
+      if(semi)
+        try_consume_err(TokenType::SEMI);
+      else
+        semi = true;
+
       auto stmt = m_allocator.emplace<NodeStmt>(reset);
       return stmt;
     }
@@ -808,7 +832,12 @@ public:
       reset_id->expr = expr;
 
       const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
-      try_consume_err(TokenType::SEMI);
+
+      if(semi)
+        try_consume_err(TokenType::SEMI);
+      else
+        semi = true;
+
       auto stmt = m_allocator.emplace<NodeStmt>(reset);
       return stmt;
     }
@@ -842,7 +871,12 @@ public:
       reset_id->expr = expr;
 
       const auto reset = m_allocator.emplace<NodeStmtReset>(reset_id);
-      try_consume_err(TokenType::SEMI);
+
+      if(semi)
+        try_consume_err(TokenType::SEMI);
+      else
+        semi = true;
+
       auto stmt = m_allocator.emplace<NodeStmt>(reset);
       return stmt;
     }
@@ -872,7 +906,12 @@ public:
       else 
         error_invalid("expression");
 
-      try_consume_err(TokenType::SEMI);
+
+      if(semi)
+        try_consume_err(TokenType::SEMI);
+      else
+        semi = true;
+     
       auto stmt = m_allocator.emplace<NodeStmt>(reset);
       return stmt;
     }
@@ -911,6 +950,66 @@ public:
       return stmt;
     }
 
+    /* PARSE -> FOR ( SET ID = EXPR ; EXPR ; RESET ID = EXPR) { STMT } */
+    else if(auto for_ = try_consume(TokenType::FOR))
+    {
+      try_consume_err(TokenType::LPAREN);
+
+      auto first_stmt = parse_stmt();
+      if(!first_stmt.has_value())
+        error_expected("set statement first in for loop");
+
+      auto for_stmt = m_allocator.emplace<NodeStmtFor>(); // create a for loop stmt
+      if(std::holds_alternative<NodeStmtSet*>(first_stmt.value()->variant))
+      {
+        NodeStmtSet* set_stmt = std::get<NodeStmtSet*>(first_stmt.value()->variant);
+        if(std::holds_alternative<NodeStmtSetID*>(set_stmt->variant))
+          for_stmt->set = set_stmt; 
+        else 
+          error_invalid("for loop set statement");
+      }
+      else
+        error_invalid("for loop set statement");
+
+      // At this point we have parsed for(set i = 0; 
+      if(const auto expr = parse_expr())
+        for_stmt->cond = expr.value();
+      else
+        error_invalid("conditional expression");
+
+      try_consume_err(TokenType::SEMI);
+
+      // Now we have parsed for (i = 0; i < count;  
+      semi = false; // TURN SEMI COLONS OFF FOR THIS EXPRESSION
+      
+      auto second_stmt = parse_stmt();
+      if(!second_stmt.has_value())
+        error_expected("reset statement after conditional expression");
+
+      if(std::holds_alternative<NodeStmtReset*>(second_stmt.value()->variant))
+      {
+        NodeStmtReset* reset_stmt = std::get<NodeStmtReset*>(second_stmt.value()->variant);
+        if(!std::holds_alternative<NodeStmtResetID*>(reset_stmt->variant))
+          error_invalid("for loop reset statement");
+      }
+      else
+        error_invalid("for loop reset statement");
+
+      try_consume_err(TokenType::RPAREN);
+
+      if (const auto scope = parse_scope())
+      {
+        // ADD THE RESET STATEMENT TO THE END OF THE SCOPE
+        scope.value()->stmts.push_back(second_stmt.value());
+        for_stmt->scope = scope.value();
+      }
+      else
+        error_invalid("scope");
+
+
+      auto stmt = m_allocator.emplace<NodeStmt>(for_stmt);
+      return stmt;
+    }
 
     /* PARSE -> IF ( EXPR ) { STMT } */
     else if (auto if_ = try_consume(TokenType::IF)) 
@@ -994,6 +1093,7 @@ private:
     exit(EXIT_FAILURE);
   }
 
+  bool semi = true; 
   const std::vector<Token> m_tokens;
   size_t m_index = 0;
   ArenaAllocator m_allocator;

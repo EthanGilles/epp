@@ -202,6 +202,8 @@ struct NodeStmtWhile {
   NodeScope* scope;
 };
 
+
+
 struct NodeStmtPlease {
   size_t value;
 };
@@ -222,6 +224,12 @@ struct NodeStmtReset {
   std::variant<NodeStmtResetID*, NodeStmtResetArrID*> variant;
 };
 
+struct NodeStmtFor {
+  NodeStmtSet* set;
+  NodeExpr* cond;
+  NodeScope* scope;
+};
+
 /* STMT VARIANTS */
 struct NodeStmt {
   std::variant<
@@ -231,6 +239,7 @@ struct NodeStmt {
   NodeScope*, 
   NodeStmtIf*, 
   NodeStmtWhile*, 
+  NodeStmtFor*, 
   NodeStmtPlease*, 
   NodeStmtReset* > 
   variant;
