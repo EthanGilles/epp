@@ -278,8 +278,19 @@ public:
   void gen_scope(const NodeScope *scope) 
   {
     begin_scope();
+    size_t please_count = 0;
     for(const NodeStmt *stmt : scope->stmts)
+    {
       gen_stmt(stmt);
+      if(std::holds_alternative<NodeStmtPlease*>(stmt->variant))
+        please_count++;
+    }
+    if (m_in_loop)
+    {
+      m_stmt_count -= scope->stmts.size();
+      m_stmt_count += please_count;
+      m_please_count -= please_count;
+    }
     end_scope();
   }
 
@@ -298,7 +309,10 @@ public:
 
         const std::string label = gen.create_label();
         gen.m_output << "    test rax, rax\n";
-        gen.m_output << "    jz " << label << "\n";
+        if(elsif->predicate.has_value())
+          gen.m_output << "    jz " << label << "\n";
+        else
+          gen.m_output << "    jz " << end_label << "\n";
         gen.gen_scope(elsif->scope);
         gen.m_output << "    jmp " << end_label << "\n";
 
@@ -646,21 +660,24 @@ public:
 
         while(val != 0) 
         {
+          gen.m_in_loop = true;
           gen.pop("rax");
           gen.gen_scope(stmt_while->scope);
-          gen.m_stmt_count -= stmt_while->scope->stmts.size();
           val = gen.gen_expr(stmt_while->expr);
         }
+
+        gen.m_in_loop = false;
         gen.pop("rax");
-        gen.m_stmt_count += stmt_while->scope->stmts.size();
+
+        gen.m_stmt_count += gen.count_stmts(stmt_while->scope); 
+
         gen.m_output << "    ;; /while\n";
       }
       void operator()(const NodeStmtFor *stmt_for)
       {
         gen.m_output << "    ;; /for\n";
 
-        // BEGIN THE SCOPE -- WE WANT THE SET STMT IN SCOPE
-        // Kind-of hack because not using gen_scope but honestly it works fine.
+        // BEGIN THE SCOPE -- WE WANT THE SET STMT IN AN OUTER SCOPE
         gen.begin_scope();
         // Only real difference from while loop is this set stmt
         gen.gen_stmt_set(stmt_for->set);
@@ -671,20 +688,19 @@ public:
 
         while(val != 0)
         {
+          gen.m_in_loop = true;
           gen.pop("rax");
-          for(const NodeStmt *stmt : stmt_for->scope->stmts)
-            gen.gen_stmt(stmt);
-          gen.m_stmt_count -= stmt_for->scope->stmts.size();
+          gen.gen_scope(stmt_for->scope);
           val = gen.gen_expr(stmt_for->cond);
         }
+
         gen.pop("rax");
 
         // END THE SCOPE -- Now our set stmt is gone since it was in scope.
         gen.end_scope();
 
-        gen.m_stmt_count += stmt_for->scope->stmts.size();
+        gen.m_stmt_count += gen.count_stmts(stmt_for->scope) + 1; 
         gen.m_output << "    ;; /for\n";
-
       }
       /* GENERATE -> please or PLEASE */
       void operator()(const NodeStmtPlease* stmt_pls) 
@@ -803,6 +819,53 @@ public:
     m_output << "    syscall\n";;
   }
 
+  /* Crazy recursion to count statements */
+  size_t count_stmts(NodeScope* scope)
+  {
+    size_t stmt_count = 0;
+    for(NodeStmt* stmt : scope->stmts)
+    {
+      stmt_count++;
+      if(std::holds_alternative<NodeStmtPlease*>(stmt->variant))
+      {
+        stmt_count--;
+        m_please_count++;
+      }
+      else if(std::holds_alternative<NodeStmtIf*>(stmt->variant))
+      {
+        NodeStmtIf* if_stmt = std::get<NodeStmtIf*>(stmt->variant);
+        stmt_count += count_stmts(if_stmt->scope);
+        if (if_stmt->predicate.has_value())
+          stmt_count += count_predicate_stmt(if_stmt->predicate.value());
+      }
+      else if (std::holds_alternative<NodeStmtWhile*>(stmt->variant))
+        stmt_count += count_stmts(std::get<NodeStmtWhile*>(stmt->variant)->scope);
+      else if(std::holds_alternative<NodeStmtFor*>(stmt->variant))
+        stmt_count += count_stmts(std::get<NodeStmtFor*>(stmt->variant)->scope);
+      else if(std::holds_alternative<NodeScope*>(stmt->variant))
+        stmt_count += count_stmts(std::get<NodeScope*>(stmt->variant));
+    }
+    return stmt_count;
+  }
+
+  size_t count_predicate_stmt(NodeIfPred* pred)
+  {
+    size_t stmt_count = 1;
+    if(std::holds_alternative<NodeIfPredElse*>(pred->variant))
+    {
+      NodeIfPredElse* else_stmt = std::get<NodeIfPredElse*>(pred->variant);
+      stmt_count += count_stmts(else_stmt->scope);
+    }
+    if(std::holds_alternative<NodeIfPredElsif*>(pred->variant))
+    {
+      NodeIfPredElsif* elsif_stmt = std::get<NodeIfPredElsif*>(pred->variant);
+      stmt_count += count_stmts(elsif_stmt->scope);
+      if (elsif_stmt->predicate.has_value())
+        stmt_count += count_predicate_stmt(elsif_stmt->predicate.value());
+    }
+    return stmt_count;
+  }
+
 private:
 
   void push(const std::string &reg) 
@@ -865,6 +928,9 @@ private:
     std::cerr << "[Visitor Error] " << msg  << std::endl;
     exit(EXIT_FAILURE);
   }
+
+  /* loop helpers */
+  bool m_in_loop = false;
 
   /* please values */
   float m_please_count = 0;
