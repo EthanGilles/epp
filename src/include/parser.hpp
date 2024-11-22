@@ -380,7 +380,9 @@ public:
       auto else_ = m_allocator.alloc<NodeIfPredElse>();
       if (auto scope = parse_scope()) 
         else_->scope = scope.value();
-      else 
+      else if (try_consume(TokenType::IF))
+        error_invalid("else if statement. Use elsif");
+      else
         error_expected("scope following `else`");
 
       auto predicate = m_allocator.emplace<NodeIfPred>(else_);
