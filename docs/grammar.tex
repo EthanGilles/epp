@@ -166,6 +166,7 @@
   \item Single line comments are denoted by `//' and Multi-line comments are denoted with `/* */'
   \item You must say \textbf{please} or \textbf{PLEASE} enough to satisfy the compiler.
 \end{itemize}
+
 \textbf{Producers}
 \begin{align*}
   [\text{Program}] &\to [\text{Statement}]^* \\
@@ -174,14 +175,34 @@
     \text{please} \\
     \text{PLEASE} \\
     \text{exit}([\text{Expr}]); \\ 
-    \text{print}([\text{Expr}] ,^* [\text{Expr}]^*); \\ 
-    \text{printn}([\text{Expr}] ,^* [\text{Expr}]^*); \\ 
-    \text{set} \; [\text{ID}] = [\text{Expr}]; \\
-    \text{set} \; [\text{ListID}] = [\text{List}]; \\
-    \text{reset} \; [\text{ID}] = [\text{Expr}]; \\
+    [\text{PrintStmt}] \\
+    [\text{SetStmt}] \\
+    [\text{ResetStmt}] \\
     \text{if} ([\text{Expr}])[\text{Scope}][\text{AfterIf}]  \\
     \text{while} ([\text{Expr}])[\text{Scope}] \\
+    \text{for} ([\text{SetStmtID}]; [\text{Expr}]; [\text{ResetStmt}])[\text{Scope}] \\
     [\text{Scope}] \\
+  \end{cases} \\ 
+  [\text{SetStmt}] &\to 
+  \begin{cases}
+    [\text{SetStmtID}] \\
+    [\text{SetListID}]
+  \end{cases} \\
+  [\text{PrintStmt}] &\to 
+  \begin{cases}
+    \text{print}([\text{Expr}] ,^* [\text{Expr}]^*); \\ 
+    \text{printn}([\text{Expr}] ,^* [\text{Expr}]^*); \\ 
+  \end{cases} \\
+  [\text{SetStmtID}] &\to \text{set} \; [\text{ID}] = [\text{Expr}]; \\
+  [\text{SetListID}] &\to \text{set} \; [\text{ListID}] = [\text{List}]; \\
+  [\text{ResetStmt}] &\to 
+  \begin{cases}
+    \text{reset} \; [\text{ID}] = [\text{Expr}]; \\
+    \text{reset} \; [\text{ID}] += [\text{Expr}]; \\
+    \text{reset} \; [\text{ID}] -= [\text{Expr}]; \\
+    \text{reset} \; [\text{ID}] *= [\text{Expr}]; \\
+    \text{reset} \; [\text{ID}] /= [\text{Expr}]; \\
+    \text{reset} \; [\text{ID}] \%= [\text{Expr}]; \\
   \end{cases} \\
   [\text{Scope}] &\to \{[\text{Stmt}]^*\} \\
   [\text{AfterIf}] &\to 
@@ -190,6 +211,9 @@
     \text{else}([\text{Expr}])\text{[Scope]} \\
     \epsilon
   \end{cases} \\
+\end{align*}
+
+\begin{align*}
   [\text{Expr}] &\to 
   \begin{cases}
   [\text{Term}] \\ 
@@ -208,10 +232,6 @@
     \text{id\_lit} \\
     [\text{ListLocation}] \\
   \end{cases} \\
-\end{align*}
-
-
-\begin{align*}
   [\text{ListLocation}] &\to \text{id\_lit}[ \; [\text{Expr}] \; ]\\
   [\text{ListID}] &\to \text{id\_lit} \\
   [\text{List}] &\to 
@@ -252,7 +272,7 @@
 \begin{align*}
   \text{int\_lit} &\to \text{[0-9]}^* \\
   \text{char} &\to \text{(int)[0-9a-zA-Z]}^1 \\
-  \text{id\_lit} &\to [\text{a-zA-Z}][\text{0-9a-zA-Z}]^* \\
+  \text{id\_lit} &\to [\text{a-zA-Z}][\text{0-9a-zA-Z\_}]^* \\
 \end{align*}
 
 \end{document}
