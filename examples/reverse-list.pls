@@ -3,22 +3,19 @@
 PLEASE PLEASE PLEASE
 set start = "Hello World!";
 set temp = [len(start)]; 
-printn("Before: ", start);
+🙏 printn("Before: ", start);
 
-set i = 0;
-while (i < len(start)) {
+for (set i = 0; i < len(start); reset i+= 1) {
   reset temp[i] = start[len(start) - i - 1];
-  reset i += 1;
 }
 
-reset i = 0;
-while (i < len(start)) {
+for (set i = 0; i < len(start); reset i+= 1) {
   reset start[i] = temp[i];
-  reset i += 1;
 }
 
 printn("Reversed: ", start);
 
 goodbye(0);
+
 
 
