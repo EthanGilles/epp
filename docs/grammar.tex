@@ -1,3 +1,4 @@
+%! TeX program = lualatex
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % Ethan Gilles (https://github.com/EthanGilles)
 % Homework Template
@@ -30,6 +31,7 @@
 \usepackage{booktabs}
 \usepackage{outlines}
 \usepackage{enumitem}
+\usepackage{emoji}
 \setenumerate[1]{label=\arabic*.}
 \setenumerate[2]{label=(\alph*).}
 \setenumerate[3]{label=\roman*.}
@@ -167,6 +169,16 @@
   \item You must say \textbf{please} or \textbf{PLEASE} enough to satisfy the compiler.
 \end{itemize}
 
+
+\textbf{Keywords}
+\begin{itemize}
+  \item 'space' $\to$ int\_lit with value 32 (ASCII code for space)
+  \item 'newline' $\to$ int\_lit with value 10 (ASCII code for \textbackslash n)
+  \item 'true' $\to$ int\_lit with value 1 
+  \item 'false' $\to$ int\_lit with value 0
+  \item \emoji{folded-hands} $\to$ please
+\end{itemize}
+
 \textbf{Producers}
 \begin{align*}
   [\text{Program}] &\to [\text{Statement}]^* \\
@@ -195,6 +207,9 @@
   \end{cases} \\
   [\text{SetStmtID}] &\to \text{set} \; [\text{ID}] = [\text{Expr}]; \\
   [\text{SetListID}] &\to \text{set} \; [\text{ListID}] = [\text{List}]; \\
+\end{align*}
+
+\begin{align*}
   [\text{ResetStmt}] &\to 
   \begin{cases}
     \text{reset} \; [\text{ID}] = [\text{Expr}]; \\
@@ -211,9 +226,6 @@
     \text{else}([\text{Expr}])\text{[Scope]} \\
     \epsilon
   \end{cases} \\
-\end{align*}
-
-\begin{align*}
   [\text{Expr}] &\to 
   \begin{cases}
   [\text{Term}] \\ 
@@ -251,6 +263,9 @@
     [\; [\text{Expr}]..[\text{Expr}] \;] \\
     \text{str([Expr])} \\
   \end{cases} \\
+\end{align*}
+
+\begin{align*}
   [\text{BinaryExpr}] &\to 
   \begin{cases}
     [\text{Expr}] \times [\text{Expr}] & precedence = 2 \\
@@ -258,11 +273,11 @@
     [\text{Expr}] \,\%\, [\text{Expr}] & precedence = 2 \\
     [\text{Expr}] + [\text{Expr}] & precedence = 1 \\
     [\text{Expr}] - [\text{Expr}] & precedence = 1 \\
-    [Expr] \le  [Expr] & precedence = 0 \\
-    [Expr] \ge  [Expr] & precedence = 0 \\
-    [Expr] >  [Expr] & precedence = 0 \\
-    [Expr] <  [Expr] & precedence = 0 \\
-    [Expr] ==  [Expr] & precedence = 0 \\
+    [Expr] \le [Expr] & precedence = 0 \\
+    [Expr] \ge [Expr] & precedence = 0 \\
+    [Expr] < [Expr] & precedence = 0 \\
+    [Expr] > [Expr] & precedence = 0 \\ 
+    [Expr]   [Expr] & precedence = 0 \\
     [Expr] \; ! \!=  [Expr] & precedence = 0 \\
   \end{cases} \\
 \end{align*}
