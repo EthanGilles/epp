@@ -46,13 +46,13 @@ The idea behind the project is to encourage a unique syntax style that introduce
 ### Prerequisites
 
 - A Debian/Ubuntu Linux system.
-- We're using *modern* C++. gcc C++ 20 compiler is required.
+- We're using *modern* C++. A C++ 20 compiler is required. gcc is reccomended.
 - cmake, make
 - Netwide Assembler
     ```bash
     sudo apt install gcc cmake nasm
     ```
-test
+
 ### Installation
 
 1. Clone the repository:
