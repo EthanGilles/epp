@@ -99,6 +99,16 @@ please printn("Hello World!");
 goodbye(0);
 ```
 
+More examples can be found in the `examples/` directory.
+
+The language is actually quite expressive at times. Here is an example of 
+the alphabet being printed without using a loop:
+
+```
+please set range = ['a'..'z'];
+please printn("Alphabet: ", range);
+```
+
 ## Grammar Documentation
 
 The full documentation for the grammar is available in `docs/grammar.pdf`
@@ -125,7 +135,7 @@ $$
 ## Project Structure
 
 - **src/**: Contains the source code for the Please Compiler.
-- **examples/**: Sample polite code files for testing.
+- **examples/**: Sample code files for testing and exploring the language.
 - **docs/**: Documentation and specifications for the language.
 - **build/**: Contains the build files from cmake and the compiler executable after using `make install`.
 

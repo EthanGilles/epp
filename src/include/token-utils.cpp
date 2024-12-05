@@ -10,10 +10,18 @@ std::string to_string(const TokenType type)
       return "`goodbye`";
     case TokenType::PRINT:
       return "`print`";
+    case TokenType::PRINTNL:
+      return "`printn`";
     case TokenType::INT_LIT:
       return "int_lit";
+    case TokenType::STRING:
+      return "string";
     case TokenType::ID:
       return "id";
+    case TokenType::LEN:
+      return "`len`";
+    case TokenType::TO_STR:
+      return "`str`";
     case TokenType::SET:
       return "`set`";
     case TokenType::RESET:
@@ -24,6 +32,10 @@ std::string to_string(const TokenType type)
       return "`elsif`";
     case TokenType::ELSE:
       return "`else`";
+    case TokenType::WHILE:
+      return "`while`";
+    case TokenType::FOR:
+      return "`for`";
     case TokenType::PLEASE:
       return "`please`";
     case TokenType::PLEASE_C:
