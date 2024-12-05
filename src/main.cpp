@@ -62,6 +62,11 @@ int main(int argc, char *argv[])
   Tokenizer tokenizer(std::move(content));
   std::vector<Token> tokens = tokenizer.tokenize();
 
+  /* PRINT TOKENS */
+  // for ( Token t : tokens ) {
+    // std::cout << to_string(t.type) << std::endl;
+  // }
+
   Parser parser(std::move(tokens));
   std::optional<NodeProgram> program = parser.parse_program();
 

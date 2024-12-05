@@ -1,4 +1,4 @@
-
+/* Range example */
 
 please set range = ['a'..'z'];
 please printn("Range is: ", range);
