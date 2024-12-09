@@ -14,7 +14,8 @@ while (count < limit) {
 
 
 // 10th fibonacci number is 55
-if (nums[2] == 55) {
+set answer to 55
+if (nums[2] == answer) {
   set str_limit = str(limit);
   set str_fib = str(nums[2]);
   please printn("The ", str_limit, "th fibonacci number is ", str_fib);
